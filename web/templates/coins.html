@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciamento de Coins{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex justify-between items-center">
+    <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-coins text-amber-400"></i> Gerenciamento de Coins & Pacotes
+        </h1>
+        <p class="text-gray-400 text-sm">Configure os pacotes de moedas e realize ajustes manuais no saldo dos jogadores.</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Lista e Formulário de Pacotes de Coins -->
+    <div class="lg:col-span-2 space-y-6">
+        <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
+            <h2 class="text-lg font-bold text-white mb-4">Pacotes de Coins Ativos</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-gray-300">
+                    <thead class="text-xs uppercase bg-gray-700/50 text-gray-400">
+                        <tr>
+                            <th class="p-3">Título</th>
+                            <th class="p-3">Coins</th>
+                            <th class="p-3">Bônus</th>
+                            <th class="p-3">Preço (R$)</th>
+                            <th class="p-3">Status</th>
+                            <th class="p-3 text-right">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700">
+                        {% for pkg in packages %}
+                        <tr>
+                            <td class="p-3 font-semibold text-white">{{ pkg.title }}</td>
+                            <td class="p-3 font-bold text-amber-400">{{ pkg.coins }} Coins</td>
+                            <td class="p-3 text-green-400">+{{ pkg.bonus_coins }}</td>
+                            <td class="p-3 font-mono font-bold text-green-300">R$ {{ "%.2f"|format(pkg.price_brl) }}</td>
+                            <td class="p-3">
+                                {% if pkg.active %}
+                                <span class="bg-green-500/20 text-green-400 text-xs px-2 py-0.5 rounded font-semibold">Ativo</span>
+                                {% else %}
+                                <span class="bg-red-500/20 text-red-400 text-xs px-2 py-0.5 rounded font-semibold">Inativo</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-3 text-right">
+                                <a href="/coins/toggle-package/{{ pkg.id }}" class="text-xs text-amber-400 hover:underline">Alternar Status</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Formulário para Criar Pacote -->
+        <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
+            <h2 class="text-lg font-bold text-white mb-4">Criar Novo Pacote de Coins</h2>
+            <form action="/coins/create-package" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Título do Pacote</label>
+                    <input type="text" name="title" required placeholder="Ex: 5000 Coins Super VIP" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Quantidade de Coins</label>
+                    <input type="number" name="coins" required placeholder="5000" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Coins de Bônus (+)</label>
+                    <input type="number" name="bonus_coins" value="0" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Preço em R$</label>
+                    <input type="number" step="0.01" name="price_brl" required placeholder="450.00" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Descrição</label>
+                    <input type="text" name="description" placeholder="Descrição opcional do pacote" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div class="md:col-span-2">
+                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold py-2.5 rounded-lg transition">
+                        Criar Pacote de Coins
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Painel Lateral: Ajuste Manual de Saldo -->
+    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 h-fit">
+        <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-hand-holding-dollar text-green-400"></i> Ajuste Manual de Saldo
+        </h2>
+        <p class="text-xs text-gray-400 mb-4">Adicione ou remova coins de qualquer jogador. Todas as ações geram logs de auditoria.</p>
+
+        <form action="/coins/adjust-balance" method="POST" class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Selecione o Jogador</label>
+                <select name="user_id" required class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                    {% for user in users %}
+                    <option value="{{ user.id }}">{{ user.username }} (Saldo: {{ user.coins }} C)</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Quantidade de Coins (+ ou -)</label>
+                <input type="number" name="amount" required placeholder="Use 500 para adicionar ou -500 para remover" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Motivo do Ajuste</label>
+                <textarea name="reason" required placeholder="Ex: Evento de fim de semana / Correção de bug" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500 h-24"></textarea>
+            </div>
+            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg transition">
+                Aplicar Ajuste de Saldo
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
