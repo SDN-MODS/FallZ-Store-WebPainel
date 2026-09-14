@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Painel Administrativo{% endblock %} — Loja DayZ</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -13,7 +12,6 @@
     <!-- Sidebar -->
     <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col justify-between">
         <div>
-            <!-- Header/Logo -->
             <div class="p-5 border-b border-gray-700 flex items-center space-x-3">
                 <div class="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center text-gray-900 font-bold text-xl">
                     ⚡
@@ -24,7 +22,6 @@
                 </div>
             </div>
 
-            <!-- Navigation Links -->
             <nav class="p-4 space-y-1 text-sm font-medium">
                 <a href="/" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-700 transition {% if active_page == 'dashboard' %}bg-amber-500 text-gray-900 font-bold{% else %}text-gray-300{% endif %}">
                     <i class="fa-solid fa-chart-line w-5"></i>
@@ -36,7 +33,11 @@
                 </a>
                 <a href="/products" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-700 transition {% if active_page == 'products' %}bg-amber-500 text-gray-900 font-bold{% else %}text-gray-300{% endif %}">
                     <i class="fa-solid fa-boxes-stacked w-5"></i>
-                    <span>Produtos & Categorias</span>
+                    <span>Produtos & Kits</span>
+                </a>
+                <a href="/embeds" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-700 transition {% if active_page == 'embeds' %}bg-amber-500 text-gray-900 font-bold{% else %}text-gray-300{% endif %}">
+                    <i class="fa-solid fa-paintbrush w-5 text-purple-400"></i>
+                    <span>🎨 Embeds & Bot</span>
                 </a>
                 <a href="/orders" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-700 transition {% if active_page == 'orders' %}bg-amber-500 text-gray-900 font-bold{% else %}text-gray-300{% endif %}">
                     <i class="fa-solid fa-cart-shopping w-5"></i>
@@ -56,7 +57,7 @@
                 </a>
                 <a href="/settings" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-700 transition {% if active_page == 'settings' %}bg-amber-500 text-gray-900 font-bold{% else %}text-gray-300{% endif %}">
                     <i class="fa-solid fa-gear w-5"></i>
-                    <span>Configurações</span>
+                    <span>Configurações & Bot</span>
                 </a>
                 <a href="/logs" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-700 transition {% if active_page == 'logs' %}bg-amber-500 text-gray-900 font-bold{% else %}text-gray-300{% endif %}">
                     <i class="fa-solid fa-list-check w-5"></i>

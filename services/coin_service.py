@@ -10,6 +10,13 @@ def get_active_coin_packages():
     finally:
         session.close()
 
+def get_all_coin_packages():
+    session = SessionLocal()
+    try:
+        return session.query(CoinPackage).order_by(CoinPackage.coins.asc()).all()
+    finally:
+        session.close()
+
 def get_coin_package_by_id(package_id: str):
     session = SessionLocal()
     try:
@@ -17,7 +24,7 @@ def get_coin_package_by_id(package_id: str):
     finally:
         session.close()
 
-def create_coin_package(title: str, coins: int, bonus_coins: int, price_brl: float, description: str = ""):
+def create_coin_package(title: str, coins: int, bonus_coins: int, price_brl: float, description: str = "", image_url: str = ""):
     session = SessionLocal()
     try:
         pkg = CoinPackage(
@@ -26,6 +33,7 @@ def create_coin_package(title: str, coins: int, bonus_coins: int, price_brl: flo
             coins=coins,
             bonus_coins=bonus_coins,
             price_brl=price_brl,
+            image_url=image_url,
             description=description,
             active=True
         )
@@ -37,7 +45,7 @@ def create_coin_package(title: str, coins: int, bonus_coins: int, price_brl: flo
     finally:
         session.close()
 
-def update_coin_package(package_id: str, title: str, coins: int, bonus_coins: int, price_brl: float, active: bool):
+def update_coin_package(package_id: str, title: str, coins: int, bonus_coins: int, price_brl: float, active: bool, description: str = "", image_url: str = ""):
     session = SessionLocal()
     try:
         pkg = session.query(CoinPackage).filter_by(id=package_id).first()
@@ -47,8 +55,10 @@ def update_coin_package(package_id: str, title: str, coins: int, bonus_coins: in
             pkg.bonus_coins = bonus_coins
             pkg.price_brl = price_brl
             pkg.active = active
+            pkg.description = description
+            pkg.image_url = image_url
             session.commit()
-            log_action("PACKAGE_UPDATED", f"Pacote {title} atualizado")
+            log_action("PACKAGE_UPDATED", f"Pacote '{title}' ({package_id}) editado com sucesso")
             return pkg
         return None
     finally:

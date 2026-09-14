@@ -1,6 +1,7 @@
 import discord
-from discord.ui import View
+from discord.ui import View, button
 from services.order_service import get_user_orders
+from bot.utils import build_embed_from_db
 
 class MyOrdersView(View):
     def __init__(self, user_id: str):
@@ -9,16 +10,11 @@ class MyOrdersView(View):
         self.orders = get_user_orders(user_id)
 
     def get_embed(self):
-        embed = discord.Embed(
-            title="📦 MEUS PEDIDOS",
-            color=discord.Color.gold()
-        )
+        embed = build_embed_from_db('order_list')
 
         if not self.orders:
-            embed.description = "Você ainda não fez nenhum pedido na loja."
+            embed.description = f"{embed.description}\n\n*Você ainda não fez nenhum pedido na loja.*"
             return embed
-
-        embed.description = "Confira abaixo o histórico de seus pedidos e o status de entrega:\n"
 
         for order in self.orders[:10]:
             items_str = ", ".join([f"{item.quantity}x {item.product.name if item.product else 'Produto'}" for item in order.items])
@@ -38,3 +34,10 @@ class MyOrdersView(View):
             )
 
         return embed
+
+    @button(label="◀️ Voltar ao Menu Principal", style=discord.ButtonStyle.secondary, row=1)
+    async def btn_back(self, interaction: discord.Interaction, button: discord.ui.Button):
+        from bot.views.main_menu import MainMenuView, build_main_embed
+        view = MainMenuView()
+        embed = build_main_embed(interaction.user.name, str(interaction.user.display_avatar.url))
+        await interaction.response.edit_message(embed=embed, view=view)

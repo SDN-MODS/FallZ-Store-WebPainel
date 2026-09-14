@@ -3,6 +3,7 @@ from discord.ui import View, Select, button
 from services.store_service import get_active_categories, get_products_by_category, get_product_by_id
 from services.user_service import get_user_balance
 from services.order_service import create_order
+from bot.utils import build_embed_from_db
 
 class CategorySelect(Select):
     def __init__(self, categories):
@@ -31,12 +32,21 @@ class CategorySelectView(View):
             self.add_item(CategorySelect(categories))
 
     def get_embed(self):
-        embed = discord.Embed(
-            title="🛒 LOJA — CATEGORIAS DISPONÍVEIS",
-            description="Selecione a categoria desejada no menu suspenso abaixo para ver os itens.",
-            color=discord.Color.blue()
-        )
-        return embed
+        return build_embed_from_db('category_list')
+
+    @button(label="🛍️ Ver Carrinho", style=discord.ButtonStyle.primary, row=1)
+    async def btn_view_cart(self, interaction: discord.Interaction, button: discord.ui.Button):
+        from bot.views.cart_view import CartView
+        view = CartView(str(interaction.user.id))
+        embed = view.get_embed()
+        await interaction.response.edit_message(embed=embed, view=view)
+
+    @button(label="◀️ Voltar", style=discord.ButtonStyle.secondary, row=1)
+    async def btn_back(self, interaction: discord.Interaction, button: discord.ui.Button):
+        from bot.views.main_menu import MainMenuView, build_main_embed
+        view = MainMenuView()
+        embed = build_main_embed(interaction.user.name, str(interaction.user.display_avatar.url))
+        await interaction.response.edit_message(embed=embed, view=view)
 
 
 class ProductSelect(Select):
@@ -50,7 +60,7 @@ class ProductSelect(Select):
                 description=f"Estoque: {stock_str} | {prod.description[:50] if prod.description else ''}",
                 emoji="📦"
             ))
-        super().__init__(placeholder="Selecione um Produto...", min_values=1, max_values=1, options=options)
+        super().__init__(placeholder="Selecione um Produto / Kit...", min_values=1, max_values=1, options=options)
 
     async def callback(self, interaction: discord.Interaction):
         product_id = self.values[0]
@@ -67,12 +77,15 @@ class ProductSelectView(View):
             self.add_item(ProductSelect(products))
 
     def get_embed(self):
-        embed = discord.Embed(
-            title="🛒 LOJA — SELEÇÃO DE PRODUTO",
-            description="Escolha um produto da lista abaixo para conferir os detalhes e realizar a compra.",
-            color=discord.Color.blue()
-        )
+        embed = build_embed_from_db('category_list')
+        embed.title = "🛒 SELEÇÃO DE PRODUTO / KIT"
         return embed
+
+    @button(label="◀️ Voltar para Categorias", style=discord.ButtonStyle.secondary, row=1)
+    async def btn_back(self, interaction: discord.Interaction, button: discord.ui.Button):
+        view = CategorySelectView()
+        embed = view.get_embed()
+        await interaction.response.edit_message(embed=embed, view=view)
 
 
 class ProductDetailView(View):
@@ -86,17 +99,31 @@ class ProductDetailView(View):
         if not self.product:
             return discord.Embed(title="Erro", description="Produto não encontrado.", color=discord.Color.red())
 
+        embed = build_embed_from_db('product_detail')
         user_coins = get_user_balance(self.user_id)
         stock_str = "Infinito" if self.product.stock == -1 else f"{self.product.stock} unidades"
 
-        embed = discord.Embed(
-            title=f"📦 {self.product.name}",
-            description=self.product.description or "Sem descrição.",
-            color=discord.Color.purple()
-        )
+        embed.title = f"📦 {self.product.name}"
+        if self.product.description:
+            embed.description = f"{self.product.description}\n\n{embed.description}"
+
         embed.add_field(name="💰 Preço", value=f"**{self.product.price_coins} Coins**", inline=True)
         embed.add_field(name="📊 Estoque", value=stock_str, inline=True)
         embed.add_field(name="🪙 Seu Saldo Atual", value=f"**{user_coins} Coins**", inline=False)
+
+        # Content items / Kit items display
+        if self.product.content_items:
+            items_text = ""
+            for c in self.product.content_items:
+                flags = []
+                if c.is_single_use:
+                    flags.append("Uso Único")
+                if c.expiration_days > 0:
+                    flags.append(f"{c.expiration_days}d val")
+                flag_str = f" *({', '.join(flags)})*" if flags else ""
+                items_text += f"• **{c.quantity}x** `{c.item_name}`{flag_str}\n"
+
+            embed.add_field(name="📋 Itens Inclusos neste Kit", value=items_text, inline=False)
 
         coins_after = user_coins - self.product.price_coins
         if coins_after >= 0:
@@ -109,7 +136,21 @@ class ProductDetailView(View):
 
         return embed
 
-    @button(label="✅ Confirmar Compra", style=discord.ButtonStyle.success)
+    @button(label="🛒 Adicionar ao Carrinho", style=discord.ButtonStyle.primary, row=0)
+    async def btn_add_cart(self, interaction: discord.Interaction, button: discord.ui.Button):
+        from services.cart_service import add_to_cart
+        user_id = str(interaction.user.id)
+        ok, msg = add_to_cart(user_id, self.product_id, quantity=1, username=interaction.user.name)
+        if ok:
+            from bot.views.cart_view import CartView
+            view = CartView(user_id)
+            embed = view.get_embed()
+            embed.title = f"🛒 ITEM ADICIONADO AO CARRINHO!"
+            await interaction.response.edit_message(embed=embed, view=view)
+        else:
+            await interaction.response.send_message(f"❌ {msg}", ephemeral=True)
+
+    @button(label="⚡ Comprar Agora", style=discord.ButtonStyle.success, row=0)
     async def btn_confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
         user_id = str(interaction.user.id)
         user_coins = get_user_balance(user_id)
@@ -125,13 +166,11 @@ class ProductDetailView(View):
                             "Não é possível pagar diretamente em dinheiro. Adquira mais Coins primeiro!",
                 color=discord.Color.red()
             )
-            # Render Buy Coins view directly
             from bot.views.coin_view import CoinStoreView
             coin_view = CoinStoreView()
             await interaction.response.edit_message(embed=embed_err, view=coin_view)
             return
 
-        # Execute purchase
         ok, msg, order_id = create_order(user_id, [{'product_id': self.product.id, 'quantity': 1}])
 
         if ok:
@@ -148,9 +187,11 @@ class ProductDetailView(View):
         else:
             await interaction.response.send_message(f"❌ Falha no pedido: {msg}", ephemeral=True)
 
-    @button(label="🪙 Comprar Coins", style=discord.ButtonStyle.secondary)
-    async def btn_get_coins(self, interaction: discord.Interaction, button: discord.ui.Button):
-        from bot.views.coin_view import CoinStoreView
-        view = CoinStoreView()
+    @button(label="◀️ Voltar", style=discord.ButtonStyle.secondary, row=1)
+    async def btn_back(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if self.product:
+            view = ProductSelectView(self.product.category_id)
+        else:
+            view = CategorySelectView()
         embed = view.get_embed()
         await interaction.response.edit_message(embed=embed, view=view)

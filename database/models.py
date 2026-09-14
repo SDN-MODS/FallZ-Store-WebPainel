@@ -22,6 +22,7 @@ class User(Base):
     tickets = relationship("Ticket", back_populates="user", cascade="all, delete-orphan")
     coupon_usages = relationship("CouponUsage", back_populates="user", cascade="all, delete-orphan")
     audit_logs = relationship("AuditLog", back_populates="user")
+    cart_items = relationship("CartItem", back_populates="user", cascade="all, delete-orphan")
 
 
 class CoinPackage(Base):
@@ -32,6 +33,7 @@ class CoinPackage(Base):
     coins = Column(Integer, nullable=False)
     bonus_coins = Column(Integer, default=0)
     price_brl = Column(Float, nullable=False)
+    image_url = Column(String, nullable=True)
     description = Column(Text, nullable=True)
     active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
@@ -83,16 +85,66 @@ class Product(Base):
 
     category = relationship("Category", back_populates="products")
     order_items = relationship("OrderItem", back_populates="product")
+    content_items = relationship("ProductContentItem", back_populates="product", cascade="all, delete-orphan")
+    cart_items = relationship("CartItem", back_populates="product", cascade="all, delete-orphan")
+
+
+class CartItem(Base):
+    __tablename__ = 'cart_items'
+
+    id = Column(String, primary_key=True)
+    user_id = Column(String, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    product_id = Column(String, ForeignKey('products.id', ondelete='CASCADE'), nullable=False)
+    quantity = Column(Integer, default=1)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    user = relationship("User", back_populates="cart_items")
+    product = relationship("Product", back_populates="cart_items")
+
+
+class ProductContentItem(Base):
+    __tablename__ = 'product_content_items'
+
+    id = Column(String, primary_key=True)
+    product_id = Column(String, ForeignKey('products.id', ondelete='CASCADE'), nullable=False)
+    item_name = Column(String, nullable=False)
+    quantity = Column(Integer, default=1)
+    is_single_use = Column(Boolean, default=True)
+    expiration_days = Column(Integer, default=0)
+
+    product = relationship("Product", back_populates="content_items")
+
+
+class DayzTypeItem(Base):
+    __tablename__ = 'dayz_type_items'
+
+    id = Column(String, primary_key=True)
+    name = Column(String, unique=True, nullable=False)
+    category = Column(String, nullable=True)
+
+
+class BotEmbedTemplate(Base):
+    __tablename__ = 'bot_embed_templates'
+
+    key = Column(String, primary_key=True) # e.g., 'main_menu', 'coin_store', 'product_detail', etc.
+    name = Column(String, nullable=False)  # Display name in admin panel
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=False)
+    color = Column(String, default="#FFD700") # Hex color code e.g. #FFD700
+    footer_text = Column(String, default="Loja DayZ — Economia Virtual")
+    thumbnail_url = Column(String, nullable=True)
+    image_url = Column(String, nullable=True)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
 
 class Order(Base):
     __tablename__ = 'orders'
 
     id = Column(String, primary_key=True)
-    order_number = Column(Integer, autoincrement=True, unique=True, nullable=False)
+    order_number = Column(Integer, unique=True, nullable=False)
     user_id = Column(String, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     total_coins = Column(Integer, nullable=False)
-    status = Column(String, default="Aguardando processamento") # "Aguardando processamento", "Processando", "Entregue", "Cancelado"
+    status = Column(String, default="Aguardando processamento")
     admin_notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
@@ -119,7 +171,7 @@ class Coupon(Base):
 
     id = Column(String, primary_key=True)
     code = Column(String, unique=True, nullable=False)
-    type = Column(String, nullable=False) # COIN_BONUS, COIN_DISCOUNT
+    type = Column(String, nullable=False)
     value = Column(Integer, nullable=False)
     max_uses = Column(Integer, default=-1)
     used_count = Column(Integer, default=0)
@@ -147,11 +199,11 @@ class Ticket(Base):
     __tablename__ = 'tickets'
 
     id = Column(String, primary_key=True)
-    ticket_num = Column(Integer, autoincrement=True, unique=True, nullable=False)
+    ticket_num = Column(Integer, unique=True, nullable=False)
     user_id = Column(String, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
-    category = Column(String, nullable=False) # Coins, Pagamento, Pedido, Entrega, Outros
+    category = Column(String, nullable=False)
     subject = Column(String, nullable=True)
-    status = Column(String, default="Aberto") # Aberto, Em Atendimento, Fechado
+    status = Column(String, default="Aberto")
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
@@ -192,6 +244,10 @@ class StoreSettings(Base):
     id = Column(String, primary_key=True, default="default")
     store_name = Column(String, default="FallZ Store DayZ")
     logo_url = Column(String, default="https://i.imgur.com/8Q9Z5Xm.png")
+    bot_client_id = Column(String, default="")
+    bot_token = Column(String, default="")
+    bot_invite_url = Column(String, default="")
+    store_channel_id = Column(String, default="")
     support_channel_id = Column(String, default="")
     orders_channel_id = Column(String, default="")
     admin_role_id = Column(String, default="")

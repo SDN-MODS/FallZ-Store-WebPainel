@@ -2,6 +2,7 @@ import discord
 from discord.ui import View, Select, button
 from services.coin_service import get_active_coin_packages, process_coin_purchase
 from services.user_service import get_user_balance
+from bot.utils import build_embed_from_db
 
 class CoinPackageSelect(Select):
     def __init__(self, packages):
@@ -20,7 +21,6 @@ class CoinPackageSelect(Select):
         pkg_id = self.values[0]
         user_id = str(interaction.user.id)
 
-        # Confirm purchase simulation
         ok, msg = process_coin_purchase(user_id, pkg_id)
         balance = get_user_balance(user_id)
 
@@ -40,16 +40,11 @@ class CoinStoreView(View):
             self.add_item(CoinPackageSelect(packages))
 
     def get_embed(self):
-        embed = discord.Embed(
-            title="🪙 ADQUIRIR COINS — MOEDA VIRTUAL",
-            description="Escolha um dos pacotes abaixo para recarregar seu saldo de Coins instantaneamente!\n\n"
-                        "**Exemplos de Pacotes:**\n"
-                        "• 100 Coins = R$ 10,00\n"
-                        "• 250 Coins (+10) = R$ 25,00\n"
-                        "• 500 Coins (+30) = R$ 50,00\n"
-                        "• 1.000 Coins (+100) = R$ 95,00\n"
-                        "• 2.500 Coins (+300) = R$ 220,00",
-            color=discord.Color.gold()
-        )
-        embed.set_footer(text="Ao selecionar um pacote, o pagamento é processado e as coins entram no seu saldo.")
-        return embed
+        return build_embed_from_db('coin_store')
+
+    @button(label="◀️ Voltar ao Menu Principal", style=discord.ButtonStyle.secondary, row=1)
+    async def btn_back(self, interaction: discord.Interaction, button: discord.ui.Button):
+        from bot.views.main_menu import MainMenuView, build_main_embed
+        view = MainMenuView()
+        embed = build_main_embed(interaction.user.name, str(interaction.user.display_avatar.url))
+        await interaction.response.edit_message(embed=embed, view=view)

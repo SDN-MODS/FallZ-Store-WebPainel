@@ -2,27 +2,17 @@ import discord
 from discord.ui import View, button
 from services.user_service import get_or_create_user, get_user_balance
 from services.coin_service import get_user_coin_transactions
+from bot.utils import build_embed_from_db
 from bot.views.coin_view import CoinStoreView
 from bot.views.store_view import CategorySelectView
 from bot.views.order_view import MyOrdersView
 from bot.views.coupon_view import CouponModal
 from bot.views.ticket_view import TicketCategoryView
 
-def build_main_embed(user_name: str, avatar_url: str = None):
-    embed = discord.Embed(
-        title="🏪 LOJA DAYZ — MENU PRINCIPAL",
-        description="Seja bem-vindo à nossa loja virtual!\nUse os botões abaixo para navegar sem precisar digitar comandos.",
-        color=discord.Color.gold()
-    )
-    embed.add_field(name="🛒 Loja", value="Explore armas, equipamentos e veículos.", inline=True)
-    embed.add_field(name="🪙 Comprar Coins", value="Adquira coins com PIX/Crédito.", inline=True)
-    embed.add_field(name="💰 Meu Saldo", value="Consulte suas moedas e movimentações.", inline=True)
-    embed.add_field(name="📦 Meus Pedidos", value="Acompanhe o status das suas compras.", inline=True)
-    embed.add_field(name="🎁 Cupons", value="Resgate códigos de bônus e descontos.", inline=True)
-    embed.add_field(name="🎫 Suporte", value="Abra um ticket de atendimento direto.", inline=True)
-    if avatar_url:
+def build_main_embed(user_name: str = "DayZ Store", avatar_url: str = None):
+    embed = build_embed_from_db('main_menu')
+    if avatar_url and not embed.thumbnail:
         embed.set_thumbnail(url=avatar_url)
-    embed.set_footer(text="Regra Central: Dinheiro ➔ Coins ➔ Produtos")
     return embed
 
 class MainMenuView(View):
@@ -33,6 +23,15 @@ class MainMenuView(View):
     async def btn_store(self, interaction: discord.Interaction, button: discord.ui.Button):
         get_or_create_user(str(interaction.user.id), interaction.user.name, interaction.user.discriminator or "0", str(interaction.user.display_avatar.url))
         view = CategorySelectView()
+        embed = view.get_embed()
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+    @button(label="🛍️ Ver Carrinho", style=discord.ButtonStyle.primary, custom_id="btn_main_cart")
+    async def btn_cart(self, interaction: discord.Interaction, button: discord.ui.Button):
+        user_id = str(interaction.user.id)
+        get_or_create_user(user_id, interaction.user.name, interaction.user.discriminator or "0", str(interaction.user.display_avatar.url))
+        from bot.views.cart_view import CartView
+        view = CartView(user_id)
         embed = view.get_embed()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
@@ -50,10 +49,7 @@ class MainMenuView(View):
         balance = get_user_balance(user_id)
         transactions = get_user_coin_transactions(user_id)
 
-        embed = discord.Embed(
-            title="💰 SEU SALDO & HISTÓRICO DE COINS",
-            color=discord.Color.green()
-        )
+        embed = build_embed_from_db('balance_info')
         embed.add_field(name="🪙 Saldo Atual", value=f"**{balance} Coins**", inline=False)
 
         if transactions:

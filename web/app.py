@@ -6,7 +6,8 @@ from database.models import (
     User, CoinPackage, CoinTransaction, Order, Product, Category, Coupon, AuditLog, StoreSettings
 )
 from services.coin_service import (
-    get_active_coin_packages, create_coin_package, adjust_user_coins_manually
+    get_active_coin_packages, get_all_coin_packages, get_coin_package_by_id,
+    create_coin_package, update_coin_package, adjust_user_coins_manually
 )
 from services.store_service import (
     get_all_categories, create_category, create_product, delete_product
@@ -14,6 +15,9 @@ from services.store_service import (
 from services.order_service import update_order_status
 from services.coupon_service import get_all_coupons, create_coupon
 from services.audit_service import log_action
+from services.types_xml_service import process_types_xml_content, get_all_type_item_names
+from services.discord_publisher import publish_store_panel_to_discord
+from services.embed_service import get_all_embed_templates, get_embed_template, update_embed_template
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dayz_secret_key_12345")
@@ -52,12 +56,16 @@ def dashboard():
 
 # 🪙 Gerenciamento de Coins
 @app.route('/coins')
-def coins():
+@app.route('/coins/edit-package/<package_id>')
+def coins(package_id=None):
     session = SessionLocal()
     try:
-        packages = get_active_coin_packages()
+        packages = get_all_coin_packages()
         users = session.query(User).all()
-        return render_template('coins.html', active_page='coins', packages=packages, users=users)
+        edit_pkg = None
+        if package_id:
+            edit_pkg = session.query(CoinPackage).filter_by(id=package_id).first()
+        return render_template('coins.html', active_page='coins', packages=packages, users=users, edit_pkg=edit_pkg)
     finally:
         session.close()
 
@@ -68,10 +76,41 @@ def handle_create_package():
     bonus_coins = int(request.form.get('bonus_coins', 0))
     price_brl = float(request.form.get('price_brl', 0.0))
     description = request.form.get('description', '')
+    image_url = request.form.get('image_url', '')
 
-    create_coin_package(title, coins, bonus_coins, price_brl, description)
+    create_coin_package(title, coins, bonus_coins, price_brl, description, image_url)
     flash(f"Pacote '{title}' criado com sucesso!", "success")
     return redirect(url_for('coins'))
+
+@app.route('/coins/edit-package/<package_id>', methods=['POST'])
+def handle_edit_package(package_id):
+    title = request.form.get('title')
+    coins = int(request.form.get('coins', 0))
+    bonus_coins = int(request.form.get('bonus_coins', 0))
+    price_brl = float(request.form.get('price_brl', 0.0))
+    description = request.form.get('description', '')
+    image_url = request.form.get('image_url', '')
+    active = request.form.get('active') == 'true'
+
+    res = update_coin_package(package_id, title, coins, bonus_coins, price_brl, active, description, image_url)
+    if res:
+        flash(f"Pacote '{title}' atualizado com sucesso!", "success")
+    else:
+        flash("Erro ao atualizar pacote.", "error")
+    return redirect(url_for('coins'))
+
+@app.route('/coins/toggle-package/<package_id>')
+def handle_toggle_package(package_id):
+    session = SessionLocal()
+    try:
+        pkg = session.query(CoinPackage).filter_by(id=package_id).first()
+        if pkg:
+            pkg.active = not pkg.active
+            session.commit()
+            flash(f"Status do pacote '{pkg.title}' alterado para {'Ativo' if pkg.active else 'Inativo'}.", "success")
+        return redirect(url_for('coins'))
+    finally:
+        session.close()
 
 @app.route('/coins/adjust-balance', methods=['POST'])
 def handle_adjust_balance():
@@ -86,16 +125,44 @@ def handle_adjust_balance():
         flash(msg, "error")
     return redirect(url_for('coins'))
 
-# 📦 Gerenciamento de Produtos & Categorias
+# 📦 Gerenciamento de Produtos, Kits & Types.xml
 @app.route('/products')
 def products():
     session = SessionLocal()
     try:
         categories = get_all_categories()
-        prods = session.query(Product).options(joinedload(Product.category)).all()
-        return render_template('products.html', active_page='products', categories=categories, products=prods)
+        prods = session.query(Product).options(
+            joinedload(Product.category),
+            joinedload(Product.content_items)
+        ).all()
+        dayz_type_names = get_all_type_item_names()
+
+        return render_template('products.html', active_page='products', categories=categories, products=prods, dayz_type_names=dayz_type_names)
     finally:
         session.close()
+
+@app.route('/products/upload-types-xml', methods=['POST'])
+def handle_upload_types_xml():
+    if 'types_file' not in request.files:
+        flash("Nenhum arquivo enviado.", "error")
+        return redirect(url_for('products'))
+
+    file = request.files['types_file']
+    if file.filename == '':
+        flash("Nenhum arquivo selecionado.", "error")
+        return redirect(url_for('products'))
+
+    try:
+        content = file.read().decode('utf-8', errors='ignore')
+        ok, msg = process_types_xml_content(content)
+        if ok:
+            flash(msg, "success")
+        else:
+            flash(msg, "error")
+    except Exception as e:
+        flash(f"Erro ao ler arquivo XML: {str(e)}", "error")
+
+    return redirect(url_for('products'))
 
 @app.route('/products/create-category', methods=['POST'])
 def handle_create_category():
@@ -116,8 +183,27 @@ def handle_create_product():
     stock = int(request.form.get('stock', -1))
     image_url = request.form.get('image_url', '')
 
-    create_product(category_id, name, description, price_coins, stock, image_url)
-    flash(f"Produto '{name}' cadastrado!", "success")
+    item_names = request.form.getlist('item_names[]')
+    item_quantities = request.form.getlist('item_quantities[]')
+    item_expirations = request.form.getlist('item_expirations[]')
+    item_single_uses = request.form.getlist('item_single_use[]')
+
+    content_items = []
+    for idx, item_name in enumerate(item_names):
+        if item_name.strip():
+            qty = int(item_quantities[idx]) if idx < len(item_quantities) and item_quantities[idx] else 1
+            exp = int(item_expirations[idx]) if idx < len(item_expirations) and item_expirations[idx] else 0
+            is_single = str(idx) in item_single_uses or '0' in item_single_uses
+
+            content_items.append({
+                'item_name': item_name.strip(),
+                'quantity': qty,
+                'is_single_use': is_single,
+                'expiration_days': exp
+            })
+
+    create_product(category_id, name, description, price_coins, stock, image_url, content_items=content_items)
+    flash(f"Produto/Kit '{name}' cadastrado com sucesso!", "success")
     return redirect(url_for('products'))
 
 @app.route('/products/delete/<product_id>')
@@ -125,6 +211,34 @@ def handle_delete_product(product_id):
     delete_product(product_id)
     flash("Produto excluído.", "success")
     return redirect(url_for('products'))
+
+# 🎨 Personalização de Embeds & Conversas do Bot
+@app.route('/embeds')
+def embeds():
+    session = SessionLocal()
+    try:
+        templates = get_all_embed_templates()
+        selected_key = request.args.get('key', 'main_menu')
+        selected_tpl = get_embed_template(selected_key)
+        return render_template('embeds.html', active_page='embeds', templates=templates, selected_key=selected_key, selected_tpl=selected_tpl)
+    finally:
+        session.close()
+
+@app.route('/embeds/save/<key>', methods=['POST'])
+def handle_save_embed(key):
+    title = request.form.get('title')
+    description = request.form.get('description')
+    color = request.form.get('color')
+    footer_text = request.form.get('footer_text', '')
+    thumbnail_url = request.form.get('thumbnail_url', '')
+    image_url = request.form.get('image_url', '')
+
+    ok, msg = update_embed_template(key, title, description, color, footer_text, thumbnail_url, image_url)
+    if ok:
+        flash(msg, "success")
+    else:
+        flash(msg, "error")
+    return redirect(url_for('embeds', key=key))
 
 # 🛒 Gerenciamento de Pedidos
 @app.route('/orders')
@@ -202,7 +316,7 @@ def reports():
     finally:
         session.close()
 
-# ⚙️ Configurações
+# ⚙️ Configurações & Publicação no Discord
 @app.route('/settings')
 def settings():
     session = SessionLocal()
@@ -220,15 +334,36 @@ def handle_save_settings():
         if s:
             s.store_name = request.form.get('store_name')
             s.logo_url = request.form.get('logo_url')
+
+            bot_client_id = request.form.get('bot_client_id', '').strip()
+            bot_token = request.form.get('bot_token', '').strip()
+            store_channel_id = request.form.get('store_channel_id', '').strip()
+
+            bot_invite_url = request.form.get('bot_invite_url', '').strip()
+            if not bot_invite_url and bot_client_id:
+                bot_invite_url = f"https://discord.com/oauth2/authorize?client_id={bot_client_id}&permissions=8&scope=bot"
+
+            s.bot_client_id = bot_client_id
+            s.bot_token = bot_token
+            s.bot_invite_url = bot_invite_url
+            s.store_channel_id = store_channel_id
             s.support_channel_id = request.form.get('support_channel_id')
-            s.admin_role_id = request.form.get('admin_role_id')
             s.bot_welcome_message = request.form.get('bot_welcome_message')
             session.commit()
-            log_action("SETTINGS_UPDATED", "Configurações gerais da loja atualizadas")
-            flash("Configurações atualizadas!", "success")
+            log_action("SETTINGS_UPDATED", "Configurações do Discord e da loja salvas.")
+            flash("Configurações salvas com sucesso!", "success")
         return redirect(url_for('settings'))
     finally:
         session.close()
+
+@app.route('/settings/publish-store-panel', methods=['POST'])
+def handle_publish_store_panel():
+    ok, msg = publish_store_panel_to_discord()
+    if ok:
+        flash(msg, "success")
+    else:
+        flash(msg, "error")
+    return redirect(url_for('settings'))
 
 # 📝 Logs
 @app.route('/logs')

@@ -1,6 +1,7 @@
 import discord
 from discord.ui import View, Select, Modal, TextInput
 from services.ticket_service import create_ticket, get_user_tickets
+from bot.utils import build_embed_from_db
 
 class TicketModal(Modal, title="🎫 ABRIR TICKET DE SUPORTE"):
     subject_input = TextInput(
@@ -63,9 +64,11 @@ class TicketCategoryView(View):
         self.add_item(TicketCategorySelect())
 
     def get_embed(self):
-        embed = discord.Embed(
-            title="🎫 CENTRAL DE SUPORTE",
-            description="Selecione abaixo a categoria que melhor se adapta à sua solicitação para abrir um ticket de atendimento.",
-            color=discord.Color.red()
-        )
-        return embed
+        return build_embed_from_db('ticket_support')
+
+    @button(label="◀️ Voltar ao Menu Principal", style=discord.ButtonStyle.secondary, row=1)
+    async def btn_back(self, interaction: discord.Interaction, button: discord.ui.Button):
+        from bot.views.main_menu import MainMenuView, build_main_embed
+        view = MainMenuView()
+        embed = build_main_embed(interaction.user.name, str(interaction.user.display_avatar.url))
+        await interaction.response.edit_message(embed=embed, view=view)

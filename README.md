@@ -1,30 +1,46 @@
 # 🎮 Loja DayZ — Bot Discord + Painel Web Administrativo em Python
 
-Sistema completo de loja para servidores de DayZ baseado em **Coins** (moeda virtual interna).
+Sistema completo e integrado de loja para servidores de DayZ baseado no modelo de **Coins** (moeda virtual interna).
 
 ---
 
-## 💡 Fluxo Central da Economia
+## 💡 Regra Central da Economia
 
 ```text
 Dinheiro Real (R$) ➔ Coins ➔ Produtos na Loja
 ```
 
-1. O jogador compra pacotes de **Coins** com dinheiro real.
-2. As Coins são creditadas automaticamente no saldo do jogador.
-3. O jogador navega pela loja no Discord e compra itens/veículos utilizando seu saldo de Coins.
-4. O valor é descontado e um pedido é criado com status **🟡 Aguardando processamento**.
-5. A administração processa a entrega pelo **Painel Web** e altera o status para **🟢 Entregue**.
+1. **Moeda Virtual:** O jogador compra pacotes de **Coins** com dinheiro real.
+2. **Saldo Instantâneo:** As Coins entram imediatamente no saldo do jogador.
+3. **Loja do Discord:** O jogador navega pelas categorias no Bot usando botões e menus suspensos (sem comandos de texto), escolhe os produtos ou kits e confirma a compra.
+4. **Desconto Automático:** As Coins são abatidas e o pedido é criado com status `🟡 Aguardando processamento`.
+5. **Entrega Administrativa:** A equipe administra as entregas pelo **Painel Web** e altera o status para `🟢 Entregue`.
 
 ---
 
-## 🚀 Requisitos e Instalação
+## 🚀 Como Enviar a Loja para o Discord em 3 Passos (Pelo Painel Web)
 
-### Requisitos:
-- Python 3.10 ou superior
-- Pip e Git
+Desenvolvemos uma forma **100% prática e direta pelo Painel Web** para você enviar e publicar o painel da loja no seu canal do Discord com apenas **1 clique**:
 
-### Instalação das Dependências:
+1. **Acesse as Configurações no Painel Web:**
+   - Abra [http://localhost:5000/settings](http://localhost:5000/settings).
+2. **Preencha as Credenciais do Discord:**
+   - **ID do Cliente do Bot:** Cole o *Application Client ID* do seu bot.
+   - **Token do Bot:** Cole o *Bot Token* (Discord Developer Portal ➔ Bot ➔ Reset Token).
+   - **ID do Canal da Loja:** Cole o ID do canal do Discord onde a loja deve aparecer (clique com botão direito no canal no Discord ➔ *Copiar ID do Canal*).
+   - Clique em **Salvar Configurações**.
+3. **Clique no Botão de Publicação Instantânea:**
+   - Clique no botão azul **"🚀 Publicar Painel da Loja no Discord"**.
+   - A loja com a mensagem de boas-vindas, logo, saldo e todos os **botões interativos (`🛒 Loja`, `🪙 Comprar Coins`, `💰 Meu Saldo`, `📦 Meus Pedidos`, `🎁 Cupons`, `🎫 Suporte`)** aparecerá fixada imediatamente no seu canal do Discord!
+
+---
+
+## 🛠️ Requisitos e Instalação
+
+- **Python 3.10 ou superior**
+- **Pip e Git**
+
+### Instalar Dependências
 
 ```bash
 pip install -r requirements.txt
@@ -32,9 +48,27 @@ pip install -r requirements.txt
 
 ---
 
+## 🧪 Como Executar os Testes Automatizados
+
+O sistema possui uma suíte completa de testes de integração cobrindo:
+- Compra de Coins e acréscimo de saldo.
+- Compra de produtos com Coins e abatimento do saldo.
+- Impedimento de compra quando o saldo em Coins é insuficiente.
+- Edição de pacotes de coins e upload de imagem.
+- Parser do `types.xml` do DayZ e cadastro de Kits com múltiplos itens (validade e uso único).
+- Envio do painel da loja via API REST do Discord.
+
+Para executar os testes, rode no terminal:
+
+```bash
+PYTHONPATH=. pytest -v
+```
+
+---
+
 ## 🗄️ Inicialização do Banco de Dados
 
-Para criar a estrutura de tabelas SQLite e semear dados de demonstração (pacotes de coins, categorias de armas/equipamentos/veículos, produtos e cupons), execute:
+Para gerar as tabelas no banco SQLite e popular dados iniciais de demonstração (pacotes de coins, categorias de armas, equipamentos e veículos, produtos e cupons):
 
 ```bash
 python -m database.seed
@@ -42,44 +76,21 @@ python -m database.seed
 
 ---
 
-## 🌐 Como Executar o Painel Web Administrativo
-
-O painel web permite administrar faturamento, pacotes de coins, ajuste manual de saldo, cadastro de produtos, gerenciamento de pedidos, cupons promocionais e logs de auditoria.
-
-Execute o comando:
+## 🌐 Como Subir o Painel Web Administrativo
 
 ```bash
 PYTHONPATH=. python web/app.py
 ```
 
-Acesse no navegador:
+Acesse no seu navegador:
 👉 **[http://localhost:5000](http://localhost:5000)**
 
 ---
 
-## 🤖 Como Executar o Bot de Discord
+## 🤖 Como Manter o Bot Online para Interações Continuas
 
-1. Crie uma aplicação no [Discord Developer Portal](https://discord.com/developers/applications).
-2. Obtenha o **Token do Bot** e ative a **Message Content Intent**.
-3. Crie um arquivo `.env` na raiz do projeto contendo:
-
-```env
-DISCORD_BOT_TOKEN=SEU_TOKEN_AQUI
-FLASK_SECRET_KEY=sua_chave_secreta
-```
-
-4. Execute o bot:
+Após enviar o painel da loja pelo painel web, para que os botões respondam quando os jogadores clicarem, mantenha o processo do Bot rodando no terminal:
 
 ```bash
 python -m bot.main
-```
-
----
-
-## 🧪 Executando os Testes Automatizados
-
-Para rodar todos os testes de integração do fluxo econômico:
-
-```bash
-PYTHONPATH=. pytest -v
 ```

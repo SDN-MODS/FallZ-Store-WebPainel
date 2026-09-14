@@ -1,44 +1,73 @@
 {% extends "base.html" %}
 
-{% block title %}Produtos e Categorias{% endblock %}
+{% block title %}Produtos, Kits & Autocomplete DayZ{% endblock %}
 
 {% block content %}
 <div class="mb-8 flex justify-between items-center">
     <div>
         <h1 class="text-2xl font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-boxes-stacked text-amber-400"></i> Produtos & Categorias
+            <i class="fa-solid fa-boxes-stacked text-amber-400"></i> Produtos, Kits & Catálogo DayZ
         </h1>
-        <p class="text-gray-400 text-sm">Gerencie os itens disponíveis para compra com Coins na loja DayZ.</p>
+        <p class="text-gray-400 text-sm">Cadastre produtos, kits de construção/combate e faça upload do arquivo <code>types.xml</code> para autocompletar os itens do servidor.</p>
     </div>
 </div>
 
+<!-- Autocomplete Datalist para itens do types.xml -->
+<datalist id="dayz-items-list">
+    {% for item_name in dayz_type_names %}
+    <option value="{{ item_name }}">
+    {% endfor %}
+</datalist>
+
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+    <!-- Upload do types.xml -->
+    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 h-fit">
+        <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-file-code text-green-400"></i> Upload do Types.xml (DayZ)
+        </h2>
+        <p class="text-xs text-gray-400 mb-4">Envie o arquivo <code>types.xml</code> do seu servidor para carregar automaticamente os nomes dos itens (AK-74, M4A1, Carpas, Coordenadas, etc.).</p>
+
+        <form action="/products/upload-types-xml" method="POST" enctype="multipart/form-data" class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Selecione o arquivo types.xml</label>
+                <input type="file" name="types_file" accept=".xml" required class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-300 focus:outline-none focus:border-amber-500">
+            </div>
+            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg text-sm transition">
+                Importar Itens do types.xml
+            </button>
+        </form>
+
+        <div class="mt-4 pt-4 border-t border-gray-700 text-xs text-gray-400">
+            Itens cadastrados no autocomplete: <strong class="text-amber-400">{{ dayz_type_names|length }} itens</strong>
+        </div>
+    </div>
+
     <!-- Criar Categoria -->
-    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
-        <h2 class="text-lg font-bold text-white mb-4">Criar Nova Categoria</h2>
+    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 h-fit">
+        <h2 class="text-lg font-bold text-white mb-4">Criar Categoria</h2>
         <form action="/products/create-category" method="POST" class="space-y-4">
             <div>
                 <label class="block text-xs font-semibold text-gray-400 mb-1">Nome da Categoria</label>
-                <input type="text" name="name" required placeholder="Ex: Armas de Precisão" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                <input type="text" name="name" required placeholder="Ex: Construção de Base" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
             </div>
             <div>
                 <label class="block text-xs font-semibold text-gray-400 mb-1">Descrição</label>
-                <input type="text" name="description" placeholder="Descrição opcional" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                <input type="text" name="description" placeholder="Ex: Kits de tábuas, pregos e ferramentas" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
             </div>
             <div>
                 <label class="block text-xs font-semibold text-gray-400 mb-1">Ordem de Exibição</label>
                 <input type="number" name="display_order" value="0" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
             </div>
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition">
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition text-sm">
                 Criar Categoria
             </button>
         </form>
     </div>
 
-    <!-- Criar Produto -->
-    <div class="lg:col-span-2 bg-gray-800 border border-gray-700 rounded-xl p-6">
-        <h2 class="text-lg font-bold text-white mb-4">Criar Novo Produto</h2>
-        <form action="/products/create-product" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- Form do Produto / Kit Completo -->
+    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
+        <h2 class="text-lg font-bold text-white mb-4">Criar Produto / Kit de Itens</h2>
+        <form action="/products/create-product" method="POST" class="space-y-4">
             <div>
                 <label class="block text-xs font-semibold text-gray-400 mb-1">Categoria</label>
                 <select name="category_id" required class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
@@ -48,63 +77,106 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-1">Nome do Produto</label>
-                <input type="text" name="name" required placeholder="Ex: SVD Camuflada" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Nome do Produto / Kit</label>
+                <input type="text" list="dayz-items-list" name="name" required placeholder="Ex: Kit Básico de Construção de Base" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Preço em Coins (🪙)</label>
+                    <input type="number" name="price_coins" required placeholder="750" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Estoque (-1 = Infinito)</label>
+                    <input type="number" name="stock" value="-1" required class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                </div>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-1">Preço em Coins (🪙)</label>
-                <input type="number" name="price_coins" required placeholder="750" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                <label class="block text-xs font-semibold text-gray-400 mb-1">URL da Imagem do Produto (Opcional)</label>
+                <input type="url" name="image_url" placeholder="https://i.imgur.com/..." class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-1">Estoque (-1 para infinito)</label>
-                <input type="number" name="stock" value="-1" required class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Descrição do Kit</label>
+                <textarea name="description" placeholder="Acompanha tábuas, caixas de pregos, serra e martelo" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500 h-16"></textarea>
             </div>
-            <div class="md:col-span-2">
-                <label class="block text-xs font-semibold text-gray-400 mb-1">URL da Imagem (Opcional)</label>
-                <input type="url" name="image_url" placeholder="https://imgur.com/..." class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
-            </div>
-            <div class="md:col-span-2">
-                <label class="block text-xs font-semibold text-gray-400 mb-1">Descrição do Produto</label>
-                <textarea name="description" placeholder="Acompanha 2x carregadores de 10 tiros e luneta PSO-1" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500 h-20"></textarea>
-            </div>
-            <div class="md:col-span-2">
-                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold py-2.5 rounded-lg transition">
-                    Salvar Novo Produto
+
+            <!-- Seção de Itens Internos do Kit -->
+            <div class="border-t border-gray-700 pt-3">
+                <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">Composição do Kit (Itens Internos com Validade / Uso Único)</h3>
+                <div id="items-container" class="space-y-3">
+                    <div class="p-3 bg-gray-900 rounded-lg border border-gray-700 space-y-2">
+                        <div class="grid grid-cols-3 gap-2">
+                            <input type="text" list="dayz-items-list" name="item_names[]" placeholder="Nome do Item (ex: WoodenPlank)" class="col-span-2 bg-gray-800 border border-gray-700 rounded p-1.5 text-xs text-white focus:outline-none">
+                            <input type="number" name="item_quantities[]" value="1" placeholder="Qtd" class="bg-gray-800 border border-gray-700 rounded p-1.5 text-xs text-white focus:outline-none">
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-gray-400">
+                            <label class="flex items-center gap-1 cursor-pointer">
+                                <input type="checkbox" name="item_single_use[]" value="0" checked class="rounded border-gray-700 text-amber-500">
+                                USO ÚNICO
+                            </label>
+                            <div class="flex items-center gap-1">
+                                <span>Validade (Dias):</span>
+                                <input type="number" name="item_expirations[]" value="0" class="w-16 bg-gray-800 border border-gray-700 rounded p-1 text-xs text-white">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" onclick="addKitItemRow()" class="mt-2 text-xs text-amber-400 hover:underline flex items-center gap-1">
+                    <i class="fa-solid fa-plus"></i> Adicionar outro item ao kit
                 </button>
             </div>
+
+            <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold py-2.5 rounded-lg transition text-sm">
+                Salvar Produto / Kit Completo
+            </button>
         </form>
     </div>
 </div>
 
 <!-- Tabela de Produtos Existentes -->
 <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
-    <h2 class="text-lg font-bold text-white mb-4">Catálogo de Produtos</h2>
+    <h2 class="text-lg font-bold text-white mb-4">Catálogo de Produtos & Kits</h2>
     <div class="overflow-x-auto">
         <table class="w-full text-left text-sm text-gray-300">
             <thead class="text-xs uppercase bg-gray-700/50 text-gray-400">
                 <tr>
-                    <th class="p-3">Produto</th>
+                    <th class="p-3">Produto / Kit</th>
                     <th class="p-3">Categoria</th>
                     <th class="p-3">Preço</th>
                     <th class="p-3">Estoque</th>
-                    <th class="p-3">Status</th>
+                    <th class="p-3">Itens Internos (Validade)</th>
                     <th class="p-3 text-right">Ação</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-700">
                 {% for prod in products %}
                 <tr>
-                    <td class="p-3 font-semibold text-white">{{ prod.name }}</td>
-                    <td class="p-3 text-gray-400">{{ prod.category.name if prod.category else '-' }}</td>
+                    <td class="p-3 font-semibold text-white flex items-center gap-3">
+                        {% if prod.image_url %}
+                        <img src="{{ prod.image_url }}" class="w-8 h-8 rounded object-cover border border-amber-500/30">
+                        {% else %}
+                        <div class="w-8 h-8 bg-blue-500/20 text-blue-400 rounded flex items-center justify-center font-bold text-xs">📦</div>
+                        {% endif %}
+                        <div>
+                            <div>{{ prod.name }}</div>
+                            {% if prod.description %}<div class="text-xs text-gray-400 font-normal">{{ prod.description }}</div>{% endif %}
+                        </div>
+                    </td>
+                    <td class="p-3 text-gray-400 text-xs">{{ prod.category.name if prod.category else '-' }}</td>
                     <td class="p-3 font-bold text-amber-400">{{ prod.price_coins }} Coins</td>
-                    <td class="p-3 font-mono font-bold text-blue-400">
+                    <td class="p-3 font-mono font-bold text-blue-400 text-xs">
                         {% if prod.stock == -1 %}Infinito{% else %}{{ prod.stock }} un{% endif %}
                     </td>
-                    <td class="p-3">
-                        {% if prod.active %}
-                        <span class="bg-green-500/20 text-green-400 text-xs px-2 py-0.5 rounded font-semibold">Ativo</span>
+                    <td class="p-3 text-xs">
+                        {% if prod.content_items %}
+                            {% for c in prod.content_items %}
+                            <div class="text-gray-300">• {{ c.quantity }}x <strong>{{ c.item_name }}</strong>
+                                {% if c.is_single_use %}<span class="text-yellow-400 font-semibold">[Uso Único]</span>{% endif %}
+                                {% if c.expiration_days > 0 %}<span class="text-red-400 font-semibold">[{{ c.expiration_days }}d val]</span>{% endif %}
+                            </div>
+                            {% endfor %}
                         {% else %}
-                        <span class="bg-red-500/20 text-red-400 text-xs px-2 py-0.5 rounded font-semibold">Inativo</span>
+                            <span class="text-gray-500">Sem itens internos</span>
                         {% endif %}
                     </td>
                     <td class="p-3 text-right space-x-2">
@@ -118,4 +190,31 @@
         </table>
     </div>
 </div>
+
+<script>
+let kitItemIndex = 1;
+function addKitItemRow() {
+    const container = document.getElementById('items-container');
+    const div = document.createElement('div');
+    div.className = 'p-3 bg-gray-900 rounded-lg border border-gray-700 space-y-2';
+    div.innerHTML = `
+        <div class="grid grid-cols-3 gap-2">
+            <input type="text" list="dayz-items-list" name="item_names[]" placeholder="Nome do Item" class="col-span-2 bg-gray-800 border border-gray-700 rounded p-1.5 text-xs text-white focus:outline-none">
+            <input type="number" name="item_quantities[]" value="1" placeholder="Qtd" class="bg-gray-800 border border-gray-700 rounded p-1.5 text-xs text-white focus:outline-none">
+        </div>
+        <div class="flex items-center justify-between text-xs text-gray-400">
+            <label class="flex items-center gap-1 cursor-pointer">
+                <input type="checkbox" name="item_single_use[]" value="${kitItemIndex}" checked class="rounded border-gray-700 text-amber-500">
+                USO ÚNICO
+            </label>
+            <div class="flex items-center gap-1">
+                <span>Validade (Dias):</span>
+                <input type="number" name="item_expirations[]" value="0" class="w-16 bg-gray-800 border border-gray-700 rounded p-1 text-xs text-white">
+            </div>
+        </div>
+    `;
+    container.appendChild(div);
+    kitItemIndex++;
+}
+</script>
 {% endblock %}
