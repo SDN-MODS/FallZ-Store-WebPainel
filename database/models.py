@@ -171,8 +171,10 @@ class Coupon(Base):
 
     id = Column(String, primary_key=True)
     code = Column(String, unique=True, nullable=False)
-    type = Column(String, nullable=False)
-    value = Column(Integer, nullable=False)
+    type = Column(String, nullable=False) # COIN_BONUS, COIN_BONUS_PERCENT, DISCOUNT_FIXED, DISCOUNT_PERCENT
+    value = Column(Integer, nullable=False) # Quantidade fixa de coins ou porcentagem %
+    applies_to = Column(String, default="ALL") # ALL, CATEGORY, PRODUCT, COIN_PACKAGES
+    target_id = Column(String, nullable=True) # ID da Categoria ou Produto específico
     max_uses = Column(Integer, default=-1)
     used_count = Column(Integer, default=0)
     active = Column(Boolean, default=True)

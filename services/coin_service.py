@@ -64,6 +64,23 @@ def update_coin_package(package_id: str, title: str, coins: int, bonus_coins: in
     finally:
         session.close()
 
+def delete_coin_package(package_id: str):
+    session = SessionLocal()
+    try:
+        pkg = session.query(CoinPackage).filter_by(id=package_id).first()
+        if pkg:
+            title = pkg.title
+            session.delete(pkg)
+            session.commit()
+            log_action("PACKAGE_DELETED", f"Pacote de Coins '{title}' ({package_id}) excluído pelo Administrador.")
+            return True, f"Pacote '{title}' excluído com sucesso."
+        return False, "Pacote de Coins não encontrado."
+    except Exception as e:
+        session.rollback()
+        return False, f"Erro ao excluir pacote: {str(e)}"
+    finally:
+        session.close()
+
 def process_coin_purchase(user_id: str, package_id: str):
     session = SessionLocal()
     try:

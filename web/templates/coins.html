@@ -56,6 +56,7 @@
                             <td class="p-3 text-right space-x-2">
                                 <a href="/coins/edit-package/{{ pkg.id }}" class="text-xs text-amber-400 hover:underline font-bold">Editar</a>
                                 <a href="/coins/toggle-package/{{ pkg.id }}" class="text-xs text-gray-400 hover:underline">Alternar</a>
+                                <a href="/coins/delete-package/{{ pkg.id }}" onclick="return confirm('Tem certeza que deseja EXCLUIR permanentemente o pacote {{ pkg.title }}?')" class="text-xs text-red-400 hover:underline font-semibold">Excluir</a>
                             </td>
                         </tr>
                         {% endfor %}

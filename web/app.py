@@ -7,13 +7,13 @@ from database.models import (
 )
 from services.coin_service import (
     get_active_coin_packages, get_all_coin_packages, get_coin_package_by_id,
-    create_coin_package, update_coin_package, adjust_user_coins_manually
+    create_coin_package, update_coin_package, delete_coin_package, adjust_user_coins_manually
 )
 from services.store_service import (
     get_all_categories, create_category, create_product, delete_product
 )
 from services.order_service import update_order_status
-from services.coupon_service import get_all_coupons, create_coupon
+from services.coupon_service import get_all_coupons, create_coupon, delete_coupon, toggle_coupon
 from services.audit_service import log_action
 from services.types_xml_service import process_types_xml_content, get_all_type_item_names
 from services.discord_publisher import publish_store_panel_to_discord
@@ -111,6 +111,15 @@ def handle_toggle_package(package_id):
         return redirect(url_for('coins'))
     finally:
         session.close()
+
+@app.route('/coins/delete-package/<package_id>')
+def handle_delete_package(package_id):
+    ok, msg = delete_coin_package(package_id)
+    if ok:
+        flash(msg, "success")
+    else:
+        flash(msg, "error")
+    return redirect(url_for('coins'))
 
 @app.route('/coins/adjust-balance', methods=['POST'])
 def handle_adjust_balance():
@@ -279,18 +288,44 @@ def users():
 # 🎁 Cupons
 @app.route('/coupons')
 def coupons():
-    coupons_list = get_all_coupons()
-    return render_template('coupons.html', active_page='coupons', coupons=coupons_list)
+    session = SessionLocal()
+    try:
+        coupons_list = get_all_coupons()
+        categories = get_all_categories()
+        products = session.query(Product).all()
+        return render_template('coupons.html', active_page='coupons', coupons=coupons_list, categories=categories, products=products)
+    finally:
+        session.close()
 
 @app.route('/coupons/create', methods=['POST'])
 def handle_create_coupon():
     code = request.form.get('code')
     type_str = request.form.get('type')
     value = int(request.form.get('value', 0))
+    applies_to = request.form.get('applies_to', 'ALL')
+    target_id = request.form.get('target_id', '')
     max_uses = int(request.form.get('max_uses', -1))
 
-    create_coupon(code, type_str, value, max_uses)
+    create_coupon(code, type_str, value, applies_to=applies_to, target_id=target_id, max_uses=max_uses)
     flash(f"Cupom '{code}' criado com sucesso!", "success")
+    return redirect(url_for('coupons'))
+
+@app.route('/coupons/toggle/<coupon_id>')
+def handle_toggle_coupon(coupon_id):
+    ok, msg = toggle_coupon(coupon_id)
+    if ok:
+        flash(msg, "success")
+    else:
+        flash(msg, "error")
+    return redirect(url_for('coupons'))
+
+@app.route('/coupons/delete/<coupon_id>')
+def handle_delete_coupon(coupon_id):
+    ok, msg = delete_coupon(coupon_id)
+    if ok:
+        flash(msg, "success")
+    else:
+        flash(msg, "error")
     return redirect(url_for('coupons'))
 
 # 📈 Relatórios
