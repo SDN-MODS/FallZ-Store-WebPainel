@@ -14,9 +14,27 @@ async def main():
         print("💡 Para ativar o bot em seu servidor real do Discord, insira o Token no .env e inicie novamente.")
         return
 
-    bot = DayZStoreBot()
-    async with bot:
-        await bot.start(token)
+    max_retries = 5
+    retry_delay = 5
+
+    for attempt in range(1, max_retries + 1):
+        bot = DayZStoreBot()
+        try:
+            print(f"🤖 Tentando conectar ao Discord (Tentativa {attempt}/{max_retries})...")
+            async with bot:
+                await bot.start(token)
+            break
+        except Exception as e:
+            err_msg = str(e)
+            print(f"⚠️ Erro ao conectar ao Gateway do Discord: {err_msg}")
+            if "503" in err_msg or "Service Unavailable" in err_msg or "Invalid response status" in err_msg:
+                print("🌐 Os servidores do Discord estão temporariamente indisponíveis (Erro 503 HTTP/Gateway).")
+            if attempt < max_retries:
+                print(f"⏳ Aguardando {retry_delay} segundos antes de tentar reconectar novamente...")
+                await asyncio.sleep(retry_delay)
+                retry_delay *= 2
+            else:
+                print("❌ Não foi possível conectar ao Discord após várias tentativas. Tente novamente mais tarde.")
 
 if __name__ == "__main__":
     asyncio.run(main())
