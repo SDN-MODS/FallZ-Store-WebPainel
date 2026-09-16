@@ -66,16 +66,13 @@ class DayZStoreBot(commands.Bot):
                 channel = self.get_channel(int(c.channel_id))
                 if channel:
                     uses_str = f"{c.max_uses - c.used_count} resgates restantes" if c.max_uses != -1 else "Resgates ilimitados"
-                    embed = discord.Embed(
-                        title=f"🎁 CUPOM DISPONÍVEL: {c.code}",
-                        description=f"Um novo cupom promocional está ativo no servidor!\n\n"
-                                    f"• **Código:** `{c.code}`\n"
-                                    f"• **Benefício:** {c.value} ({c.type})\n"
-                                    f"• **Disponibilidade:** **{uses_str}**\n\n"
-                                    f"Clique no botão abaixo para resgatar instantaneamente no seu saldo!",
-                        color=discord.Color.gold()
-                    )
-                    embed.set_footer(text="Aproveite antes que os resgates se esgotem!")
+                    embed = build_main_embed('DayZ Store') # usa template dinâmico de cupom
+                    from bot.utils import build_embed_from_db
+                    embed = build_embed_from_db('coupon_broadcast')
+                    embed.description = f"{embed.description}\n\n" \
+                                        f"• **Código do Cupom:** `{c.code}`\n" \
+                                        f"• **Valor / Benefício:** {c.value} ({c.type})\n" \
+                                        f"• **Resgates Restantes:** **{uses_str}**"
                     view = CouponBroadcastView(c.code)
                     await channel.send(embed=embed, view=view)
 

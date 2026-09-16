@@ -65,6 +65,38 @@ def seed_default_embed_templates(session):
             description="Selecione abaixo a categoria que melhor se adapta à sua solicitação para abrir um ticket.",
             color="#EF4444",
             footer_text="Atendimento rápido com a equipe de administração."
+        ),
+        BotEmbedTemplate(
+            key="shopping_cart",
+            name="Carrinho de Compras",
+            title="🛒 SEU CARRINHO DE COMPRAS",
+            description="Confira os itens selecionados e o total em Coins antes de finalizar sua compra.",
+            color="#F59E0B",
+            footer_text="Finalize seu pedido ou continue navegando na loja!"
+        ),
+        BotEmbedTemplate(
+            key="coupon_broadcast",
+            name="Divulgação de Cupons no Canal",
+            title="🎁 CUPOM PROMOCIONAL DISPONÍVEL!",
+            description="Um novo cupom promocional está ativo no servidor! Clique no botão abaixo para resgatar instantaneamente no seu saldo.",
+            color="#10B981",
+            footer_text="Aproveite antes que os resgates se esgotem!"
+        ),
+        BotEmbedTemplate(
+            key="registration_prompt",
+            name="Confirmação de Cadastro do Jogador",
+            title="📝 CADASTRO DE JOGADOR REGISTRADO",
+            description="Seus dados foram vinculados com sucesso ao servidor. Agora você tem acesso completo a todas as funções da loja virtual!",
+            color="#3B82F6",
+            footer_text="Aproveite as compras e bom jogo!"
+        ),
+        BotEmbedTemplate(
+            key="purchase_success",
+            name="Confirmação de Compra Realizada",
+            title="🎉 COMPRA REALIZADA COM SUCESSO!",
+            description="Seu pedido foi registrado na loja e está aguardando o processamento da nossa equipe.",
+            color="#10B981",
+            footer_text="Acompanhe o status do seu pedido em 'Meus Pedidos'."
         )
     ]
 

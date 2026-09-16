@@ -10,16 +10,14 @@ class CartView(View):
 
     def get_embed(self):
         cart = get_cart_items(self.user_id)
-        embed = build_embed_from_db('product_detail') # usa template de produto ou padrão
-        embed.title = "🛒 SEU CARRINHO DE COMPRAS"
-        embed.color = discord.Color.gold()
+        embed = build_embed_from_db('shopping_cart')
 
         items = cart["items"]
         total_coins = cart["total_coins"]
         user_coins = cart["user_coins"]
 
         if not items:
-            embed.description = "Seu carrinho está **vazio**!\n\nNavegue pelas categorias e adicione os produtos desejados."
+            embed.description = f"{embed.description}\n\n⚠️ **Seu carrinho está vazio!**\nNavegue pelas categorias para adicionar produtos."
             embed.add_field(name="🪙 Seu Saldo Atual", value=f"**{user_coins} Coins**", inline=False)
             return embed
 
@@ -28,7 +26,7 @@ class CartView(View):
             cart_text += f"**{idx}. {item['name']}**\n"
             cart_text += f"└ {item['quantity']}x @ {item['price_coins']} Coins = **{item['subtotal_coins']} Coins**\n"
 
-        embed.description = f"Confira os itens selecionados:\n\n{cart_text}"
+        embed.description = f"{embed.description}\n\n📋 **Itens Selecionados:**\n{cart_text}"
         embed.add_field(name="💰 Valor Total do Carrinho", value=f"**{total_coins} Coins**", inline=True)
         embed.add_field(name="🪙 Seu Saldo Atual", value=f"**{user_coins} Coins**", inline=True)
 
@@ -45,12 +43,8 @@ class CartView(View):
         user_id = str(interaction.user.id)
         ok, msg = checkout_cart(user_id)
         if ok:
-            embed_success = discord.Embed(
-                title="🎉 COMPRA REALIZADA COM SUCESSO!",
-                description=msg,
-                color=discord.Color.green()
-            )
-            embed_success.set_footer(text="Acompanhe o status em 'Meus Pedidos'")
+            embed_success = build_embed_from_db('purchase_success')
+            embed_success.description = f"{embed_success.description}\n\n{msg}"
             await interaction.response.edit_message(embed=embed_success, view=None)
         else:
             await interaction.response.send_message(f"❌ {msg}", ephemeral=True)

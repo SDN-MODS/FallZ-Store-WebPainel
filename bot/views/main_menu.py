@@ -47,12 +47,8 @@ class RegistrationModal(Modal, title="📝 CADASTRO DE JOGADOR DAYZ"):
         )
 
         if ok:
-            embed = discord.Embed(
-                title="✅ CADASTRO CONCLUÍDO COM SUCESSO!",
-                description=msg,
-                color=discord.Color.green()
-            )
-            embed.set_footer(text="Aproveite as compras e bom jogo!")
+            embed = build_embed_from_db('registration_prompt')
+            embed.description = f"{embed.description}\n\n{msg}"
             await interaction.response.send_message(embed=embed, ephemeral=True)
         else:
             await interaction.response.send_message(f"❌ {msg}", ephemeral=True)
