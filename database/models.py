@@ -1,0 +1,271 @@
+import datetime
+from sqlalchemy import (
+    Column, String, Integer, Float, Boolean, DateTime, ForeignKey, Text
+)
+from sqlalchemy.orm import declarative_base, relationship
+
+def get_now_brt():
+    """Retorna o horário atual de Brasília (UTC-3)."""
+    return datetime.datetime.utcnow() - datetime.timedelta(hours=3)
+
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(String, primary_key=True) # Discord ID
+    username = Column(String, nullable=False) # Nome do Usuário no Discord
+    discriminator = Column(String, default="0")
+    avatar = Column(String, nullable=True)
+    full_name = Column(String, nullable=True) # Nome completo do jogador
+    nick = Column(String, nullable=True) # Nick de jogo no DayZ
+    steam_id = Column(String, nullable=True) # Steam ID 64
+    coins = Column(Integer, default=0)
+    created_at = Column(DateTime, default=get_now_brt)
+    updated_at = Column(DateTime, default=get_now_brt, onupdate=get_now_brt)
+
+    coin_transactions = relationship("CoinTransaction", back_populates="user", cascade="all, delete-orphan")
+    orders = relationship("Order", back_populates="user", cascade="all, delete-orphan")
+    tickets = relationship("Ticket", back_populates="user", cascade="all, delete-orphan")
+    coupon_usages = relationship("CouponUsage", back_populates="user", cascade="all, delete-orphan")
+    audit_logs = relationship("AuditLog", back_populates="user")
+    cart_items = relationship("CartItem", back_populates="user", cascade="all, delete-orphan")
+
+
+class CoinPackage(Base):
+    __tablename__ = 'coin_packages'
+
+    id = Column(String, primary_key=True)
+    title = Column(String, nullable=False)
+    coins = Column(Integer, nullable=False)
+    bonus_coins = Column(Integer, default=0)
+    price_brl = Column(Float, nullable=False)
+    image_url = Column(String, nullable=True)
+    description = Column(Text, nullable=True)
+    active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=get_now_brt)
+    updated_at = Column(DateTime, default=get_now_brt, onupdate=get_now_brt)
+
+
+class CoinTransaction(Base):
+    __tablename__ = 'coin_transactions'
+
+    id = Column(String, primary_key=True)
+    user_id = Column(String, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    type = Column(String, nullable=False) # PURCHASE, SPENT, ADMIN_ADD, ADMIN_REMOVE, BONUS, REFUND
+    coins = Column(Integer, nullable=False)
+    amount_brl = Column(Float, default=0.0)
+    description = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=get_now_brt)
+
+    user = relationship("User", back_populates="coin_transactions")
+
+
+class Category(Base):
+    __tablename__ = 'categories'
+
+    id = Column(String, primary_key=True)
+    name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    display_order = Column(Integer, default=0)
+    active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=get_now_brt)
+    updated_at = Column(DateTime, default=get_now_brt, onupdate=get_now_brt)
+
+    products = relationship("Product", back_populates="category", cascade="all, delete-orphan")
+
+
+class Product(Base):
+    __tablename__ = 'products'
+
+    id = Column(String, primary_key=True)
+    category_id = Column(String, ForeignKey('categories.id', ondelete='CASCADE'), nullable=False)
+    name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    price_coins = Column(Integer, nullable=False)
+    stock = Column(Integer, default=-1) # -1 = infinito
+    image_url = Column(String, nullable=True)
+    display_order = Column(Integer, default=0)
+    active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=get_now_brt)
+    updated_at = Column(DateTime, default=get_now_brt, onupdate=get_now_brt)
+
+    category = relationship("Category", back_populates="products")
+    order_items = relationship("OrderItem", back_populates="product")
+    content_items = relationship("ProductContentItem", back_populates="product", cascade="all, delete-orphan")
+    cart_items = relationship("CartItem", back_populates="product", cascade="all, delete-orphan")
+
+
+class CartItem(Base):
+    __tablename__ = 'cart_items'
+
+    id = Column(String, primary_key=True)
+    user_id = Column(String, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    product_id = Column(String, ForeignKey('products.id', ondelete='CASCADE'), nullable=False)
+    quantity = Column(Integer, default=1)
+    created_at = Column(DateTime, default=get_now_brt)
+
+    user = relationship("User", back_populates="cart_items")
+    product = relationship("Product", back_populates="cart_items")
+
+
+class ProductContentItem(Base):
+    __tablename__ = 'product_content_items'
+
+    id = Column(String, primary_key=True)
+    product_id = Column(String, ForeignKey('products.id', ondelete='CASCADE'), nullable=False)
+    item_name = Column(String, nullable=False)
+    quantity = Column(Integer, default=1)
+    is_single_use = Column(Boolean, default=True)
+    expiration_days = Column(Integer, default=0)
+
+    product = relationship("Product", back_populates="content_items")
+
+
+class DayzTypeItem(Base):
+    __tablename__ = 'dayz_type_items'
+
+    id = Column(String, primary_key=True)
+    name = Column(String, unique=True, nullable=False)
+    category = Column(String, nullable=True)
+
+
+class BotEmbedTemplate(Base):
+    __tablename__ = 'bot_embed_templates'
+
+    key = Column(String, primary_key=True) # e.g., 'main_menu', 'coin_store', 'product_detail', etc.
+    name = Column(String, nullable=False)  # Display name in admin panel
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=False)
+    color = Column(String, default="#FFD700") # Hex color code e.g. #FFD700
+    footer_text = Column(String, default="Loja DayZ — Economia Virtual")
+    thumbnail_url = Column(String, nullable=True)
+    image_url = Column(String, nullable=True)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+
+class Order(Base):
+    __tablename__ = 'orders'
+
+    id = Column(String, primary_key=True)
+    order_number = Column(Integer, unique=True, nullable=False)
+    user_id = Column(String, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    total_coins = Column(Integer, nullable=False)
+    status = Column(String, default="Aguardando processamento")
+    admin_notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    user = relationship("User", back_populates="orders")
+    items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+
+
+class OrderItem(Base):
+    __tablename__ = 'order_items'
+
+    id = Column(String, primary_key=True)
+    order_id = Column(String, ForeignKey('orders.id', ondelete='CASCADE'), nullable=False)
+    product_id = Column(String, ForeignKey('products.id'), nullable=False)
+    quantity = Column(Integer, nullable=False)
+    unit_coins = Column(Integer, nullable=False)
+
+    order = relationship("Order", back_populates="items")
+    product = relationship("Product", back_populates="order_items")
+
+
+class Coupon(Base):
+    __tablename__ = 'coupons'
+
+    id = Column(String, primary_key=True)
+    code = Column(String, unique=True, nullable=False)
+    type = Column(String, nullable=False) # COIN_BONUS, COIN_BONUS_PERCENT, DISCOUNT_FIXED, DISCOUNT_PERCENT
+    value = Column(Integer, nullable=False) # Quantidade fixa de coins ou porcentagem %
+    applies_to = Column(String, default="ALL") # ALL, CATEGORY, PRODUCT, COIN_PACKAGES
+    target_id = Column(String, nullable=True) # ID da Categoria ou Produto específico
+    max_uses = Column(Integer, default=-1)
+    used_count = Column(Integer, default=0)
+    active = Column(Boolean, default=True)
+
+    # Campos de Envio Programado
+    channel_id = Column(String, nullable=True) # ID do Canal do Discord para envio automático
+    interval_minutes = Column(Integer, default=0) # Intervalo entre envios (ex: 60 min). 0 desativa
+    start_time = Column(DateTime, nullable=True) # Data/Hora início BRT
+    expires_at = Column(DateTime, nullable=True) # Data/Hora fim BRT
+    last_sent_at = Column(DateTime, nullable=True)
+
+    created_at = Column(DateTime, default=get_now_brt)
+    updated_at = Column(DateTime, default=get_now_brt, onupdate=get_now_brt)
+
+    usages = relationship("CouponUsage", back_populates="coupon", cascade="all, delete-orphan")
+
+
+class CouponUsage(Base):
+    __tablename__ = 'coupon_usages'
+
+    id = Column(String, primary_key=True)
+    coupon_id = Column(String, ForeignKey('coupons.id', ondelete='CASCADE'), nullable=False)
+    user_id = Column(String, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    coupon = relationship("Coupon", back_populates="usages")
+    user = relationship("User", back_populates="coupon_usages")
+
+
+class Ticket(Base):
+    __tablename__ = 'tickets'
+
+    id = Column(String, primary_key=True)
+    ticket_num = Column(Integer, unique=True, nullable=False)
+    user_id = Column(String, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    category = Column(String, nullable=False)
+    subject = Column(String, nullable=True)
+    status = Column(String, default="Aberto")
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    user = relationship("User", back_populates="tickets")
+    messages = relationship("TicketMessage", back_populates="ticket", cascade="all, delete-orphan")
+
+
+class TicketMessage(Base):
+    __tablename__ = 'ticket_messages'
+
+    id = Column(String, primary_key=True)
+    ticket_id = Column(String, ForeignKey('tickets.id', ondelete='CASCADE'), nullable=False)
+    sender_id = Column(String, nullable=False)
+    sender_name = Column(String, nullable=False)
+    is_admin = Column(Boolean, default=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    ticket = relationship("Ticket", back_populates="messages")
+
+
+class AuditLog(Base):
+    __tablename__ = 'audit_logs'
+
+    id = Column(String, primary_key=True)
+    actor_id = Column(String, nullable=True)
+    action = Column(String, nullable=False)
+    details = Column(Text, nullable=False)
+    target_id = Column(String, ForeignKey('users.id'), nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    user = relationship("User", back_populates="audit_logs")
+
+
+class StoreSettings(Base):
+    __tablename__ = 'store_settings'
+
+    id = Column(String, primary_key=True, default="default")
+    store_name = Column(String, default="FallZ Store DayZ")
+    logo_url = Column(String, default="https://i.imgur.com/8Q9Z5Xm.png")
+    bot_client_id = Column(String, default="")
+    bot_token = Column(String, default="")
+    bot_invite_url = Column(String, default="")
+    store_channel_id = Column(String, default="")
+    support_channel_id = Column(String, default="")
+    orders_channel_id = Column(String, default="")
+    admin_role_id = Column(String, default="")
+    bot_welcome_message = Column(Text, default="Bem-vindo à Loja DayZ! Compre Coins e resgate seus itens com facilidade.")
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
