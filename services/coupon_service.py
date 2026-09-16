@@ -1,7 +1,7 @@
 import uuid
 import datetime
 from database.db import SessionLocal
-from database.models import Coupon, CouponUsage, User, CoinTransaction
+from database.models import Coupon, CouponUsage, User, CoinTransaction, get_now_brt
 from services.audit_service import log_action
 
 def get_all_coupons():
@@ -78,7 +78,8 @@ def apply_coupon(user_id: str, code: str):
         if not coupon or not user:
             return False, "Cupom inválido ou não encontrado."
 
-        if coupon.expires_at and coupon.expires_at < datetime.datetime.utcnow():
+        now_brt = get_now_brt()
+        if coupon.expires_at and coupon.expires_at < now_brt:
             return False, "Este cupom já expirou."
 
         if coupon.max_uses != -1 and coupon.used_count >= coupon.max_uses:
