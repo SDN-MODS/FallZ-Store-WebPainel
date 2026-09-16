@@ -62,6 +62,11 @@ class CartView(View):
         embed = view.get_embed()
         await interaction.response.edit_message(embed=embed, view=view)
 
+    @button(label="🎟️ Aplicar Cupom de Desconto", style=discord.ButtonStyle.primary, row=1)
+    async def btn_apply_coupon(self, interaction: discord.Interaction, button: discord.ui.Button):
+        from bot.views.coupon_view import CouponModal
+        await interaction.response.send_modal(CouponModal())
+
     @button(label="🧹 Limpar Carrinho", style=discord.ButtonStyle.secondary, row=1)
     async def btn_clear(self, interaction: discord.Interaction, button: discord.ui.Button):
         user_id = str(interaction.user.id)

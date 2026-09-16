@@ -42,6 +42,11 @@ class CoinStoreView(View):
     def get_embed(self):
         return build_embed_from_db('coin_store')
 
+    @button(label="🎟️ Resgatar Cupom de Bônus de Coins", style=discord.ButtonStyle.success, row=1)
+    async def btn_apply_coin_coupon(self, interaction: discord.Interaction, button: discord.ui.Button):
+        from bot.views.coupon_view import CouponModal
+        await interaction.response.send_modal(CouponModal())
+
     @button(label="◀️ Voltar ao Menu Principal", style=discord.ButtonStyle.secondary, row=1)
     async def btn_back(self, interaction: discord.Interaction, button: discord.ui.Button):
         from bot.views.main_menu import MainMenuView, build_main_embed

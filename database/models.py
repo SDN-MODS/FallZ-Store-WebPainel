@@ -4,6 +4,10 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import declarative_base, relationship
 
+def get_now_brt():
+    """Retorna o horário atual de Brasília (UTC-3)."""
+    return datetime.datetime.utcnow() - datetime.timedelta(hours=3)
+
 Base = declarative_base()
 
 class User(Base):
@@ -14,8 +18,8 @@ class User(Base):
     discriminator = Column(String, default="0")
     avatar = Column(String, nullable=True)
     coins = Column(Integer, default=0)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=get_now_brt)
+    updated_at = Column(DateTime, default=get_now_brt, onupdate=get_now_brt)
 
     coin_transactions = relationship("CoinTransaction", back_populates="user", cascade="all, delete-orphan")
     orders = relationship("Order", back_populates="user", cascade="all, delete-orphan")
@@ -36,8 +40,8 @@ class CoinPackage(Base):
     image_url = Column(String, nullable=True)
     description = Column(Text, nullable=True)
     active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=get_now_brt)
+    updated_at = Column(DateTime, default=get_now_brt, onupdate=get_now_brt)
 
 
 class CoinTransaction(Base):
@@ -49,7 +53,7 @@ class CoinTransaction(Base):
     coins = Column(Integer, nullable=False)
     amount_brl = Column(Float, default=0.0)
     description = Column(Text, nullable=False)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=get_now_brt)
 
     user = relationship("User", back_populates="coin_transactions")
 
@@ -62,8 +66,8 @@ class Category(Base):
     description = Column(Text, nullable=True)
     display_order = Column(Integer, default=0)
     active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=get_now_brt)
+    updated_at = Column(DateTime, default=get_now_brt, onupdate=get_now_brt)
 
     products = relationship("Product", back_populates="category", cascade="all, delete-orphan")
 
@@ -80,8 +84,8 @@ class Product(Base):
     image_url = Column(String, nullable=True)
     display_order = Column(Integer, default=0)
     active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=get_now_brt)
+    updated_at = Column(DateTime, default=get_now_brt, onupdate=get_now_brt)
 
     category = relationship("Category", back_populates="products")
     order_items = relationship("OrderItem", back_populates="product")
@@ -96,7 +100,7 @@ class CartItem(Base):
     user_id = Column(String, ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     product_id = Column(String, ForeignKey('products.id', ondelete='CASCADE'), nullable=False)
     quantity = Column(Integer, default=1)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=get_now_brt)
 
     user = relationship("User", back_populates="cart_items")
     product = relationship("Product", back_populates="cart_items")
@@ -178,9 +182,16 @@ class Coupon(Base):
     max_uses = Column(Integer, default=-1)
     used_count = Column(Integer, default=0)
     active = Column(Boolean, default=True)
-    expires_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+    # Campos de Envio Programado
+    channel_id = Column(String, nullable=True) # ID do Canal do Discord para envio automático
+    interval_minutes = Column(Integer, default=0) # Intervalo entre envios (ex: 60 min). 0 desativa
+    start_time = Column(DateTime, nullable=True) # Data/Hora início BRT
+    expires_at = Column(DateTime, nullable=True) # Data/Hora fim BRT
+    last_sent_at = Column(DateTime, nullable=True)
+
+    created_at = Column(DateTime, default=get_now_brt)
+    updated_at = Column(DateTime, default=get_now_brt, onupdate=get_now_brt)
 
     usages = relationship("CouponUsage", back_populates="coupon", cascade="all, delete-orphan")
 

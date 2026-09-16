@@ -11,7 +11,7 @@ def get_all_coupons():
     finally:
         session.close()
 
-def create_coupon(code: str, coupon_type: str, value: int, applies_to: str = "ALL", target_id: str = None, max_uses: int = -1, expires_at: datetime.datetime = None):
+def create_coupon(code: str, coupon_type: str, value: int, applies_to: str = "ALL", target_id: str = None, max_uses: int = -1, channel_id: str = None, interval_minutes: int = 0, start_time: datetime.datetime = None, expires_at: datetime.datetime = None):
     session = SessionLocal()
     try:
         coupon = Coupon(
@@ -24,6 +24,9 @@ def create_coupon(code: str, coupon_type: str, value: int, applies_to: str = "AL
             max_uses=max_uses,
             used_count=0,
             active=True,
+            channel_id=channel_id,
+            interval_minutes=interval_minutes,
+            start_time=start_time,
             expires_at=expires_at
         )
         session.add(coupon)

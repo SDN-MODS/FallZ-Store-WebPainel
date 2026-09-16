@@ -70,11 +70,6 @@ class MainMenuView(View):
         embed = view.get_embed()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
-    @button(label="🎁 Cupons", style=discord.ButtonStyle.secondary, custom_id="btn_main_coupons")
-    async def btn_coupons(self, interaction: discord.Interaction, button: discord.ui.Button):
-        get_or_create_user(str(interaction.user.id), interaction.user.name, interaction.user.discriminator or "0", str(interaction.user.display_avatar.url))
-        await interaction.response.send_modal(CouponModal())
-
     @button(label="🎫 Suporte", style=discord.ButtonStyle.danger, custom_id="btn_main_support")
     async def btn_support(self, interaction: discord.Interaction, button: discord.ui.Button):
         get_or_create_user(str(interaction.user.id), interaction.user.name, interaction.user.discriminator or "0", str(interaction.user.display_avatar.url))

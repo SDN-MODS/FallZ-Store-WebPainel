@@ -297,6 +297,8 @@ def coupons():
     finally:
         session.close()
 
+import datetime
+
 @app.route('/coupons/create', methods=['POST'])
 def handle_create_coupon():
     code = request.form.get('code')
@@ -306,7 +308,22 @@ def handle_create_coupon():
     target_id = request.form.get('target_id', '')
     max_uses = int(request.form.get('max_uses', -1))
 
-    create_coupon(code, type_str, value, applies_to=applies_to, target_id=target_id, max_uses=max_uses)
+    channel_id = request.form.get('channel_id', '').strip()
+    interval_minutes = int(request.form.get('interval_minutes', 0))
+
+    start_time_str = request.form.get('start_time', '').strip()
+    expires_at_str = request.form.get('expires_at', '').strip()
+
+    start_time = datetime.datetime.fromisoformat(start_time_str) if start_time_str else None
+    expires_at = datetime.datetime.fromisoformat(expires_at_str) if expires_at_str else None
+
+    create_coupon(
+        code, type_str, value,
+        applies_to=applies_to, target_id=target_id,
+        max_uses=max_uses, channel_id=channel_id,
+        interval_minutes=interval_minutes,
+        start_time=start_time, expires_at=expires_at
+    )
     flash(f"Cupom '{code}' criado com sucesso!", "success")
     return redirect(url_for('coupons'))
 
