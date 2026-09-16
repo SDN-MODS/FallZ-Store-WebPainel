@@ -17,31 +17,44 @@
         <table class="w-full text-left text-sm text-gray-300">
             <thead class="text-xs uppercase bg-gray-700/50 text-gray-400">
                 <tr>
-                    <th class="p-3">Discord ID</th>
-                    <th class="p-3">Nome do Jogador</th>
-                    <th class="p-3">Saldo Atual</th>
-                    <th class="p-3">Total de Pedidos</th>
+                    <th class="p-3">Jogador / Discord</th>
+                    <th class="p-3">Nome Completo</th>
+                    <th class="p-3">Nick DayZ</th>
+                    <th class="p-3">Steam ID 64</th>
+                    <th class="p-3">Saldo</th>
+                    <th class="p-3">Pedidos</th>
                     <th class="p-3">Data de Cadastro</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-700">
                 {% for user in users %}
                 <tr>
-                    <td class="p-3 font-mono text-xs text-gray-400">{{ user.id }}</td>
                     <td class="p-3 font-semibold text-white flex items-center gap-2">
                         {% if user.avatar %}
-                        <img src="{{ user.avatar }}" class="w-6 h-6 rounded-full">
+                        <img src="{{ user.avatar }}" class="w-7 h-7 rounded-full">
                         {% else %}
-                        <div class="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs">🎮</div>
+                        <div class="w-7 h-7 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs font-bold">🎮</div>
                         {% endif %}
-                        {{ user.username }}
+                        <div>
+                            <div>{{ user.username }}</div>
+                            <div class="text-xs font-mono text-gray-500 font-normal">ID: {{ user.id }}</div>
+                        </div>
+                    </td>
+                    <td class="p-3 text-sm text-gray-200 font-medium">
+                        {{ user.full_name if user.full_name else '-' }}
+                    </td>
+                    <td class="p-3 text-sm font-bold text-amber-300">
+                        {{ user.nick if user.nick else '-' }}
+                    </td>
+                    <td class="p-3 text-xs font-mono text-blue-400">
+                        {{ user.steam_id if user.steam_id else '-' }}
                     </td>
                     <td class="p-3 font-bold text-amber-400">{{ user.coins }} Coins</td>
                     <td class="p-3 font-semibold text-blue-400">{{ user.orders|length }} pedidos</td>
                     <td class="p-3 text-xs text-gray-400">{{ user.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
                 </tr>
                 {% else %}
-                <tr><td colspan="5" class="p-4 text-center text-gray-500">Nenhum jogador registrado ainda.</td></tr>
+                <tr><td colspan="7" class="p-4 text-center text-gray-500">Nenhum jogador registrado ainda.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

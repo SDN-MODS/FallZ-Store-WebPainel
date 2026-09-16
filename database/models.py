@@ -14,9 +14,12 @@ class User(Base):
     __tablename__ = 'users'
 
     id = Column(String, primary_key=True) # Discord ID
-    username = Column(String, nullable=False)
+    username = Column(String, nullable=False) # Nome do Usuário no Discord
     discriminator = Column(String, default="0")
     avatar = Column(String, nullable=True)
+    full_name = Column(String, nullable=True) # Nome completo do jogador
+    nick = Column(String, nullable=True) # Nick de jogo no DayZ
+    steam_id = Column(String, nullable=True) # Steam ID 64
     coins = Column(Integer, default=0)
     created_at = Column(DateTime, default=get_now_brt)
     updated_at = Column(DateTime, default=get_now_brt, onupdate=get_now_brt)

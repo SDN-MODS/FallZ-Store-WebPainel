@@ -92,6 +92,26 @@ def migrate_db():
         if 'image_url' not in pkg_columns:
             conn.execute(text("ALTER TABLE coin_packages ADD COLUMN image_url VARCHAR"))
 
+        user_result = conn.execute(text("PRAGMA table_info(users)")).fetchall()
+        user_columns = [row[1] for row in user_result]
+        if 'full_name' not in user_columns:
+            conn.execute(text("ALTER TABLE users ADD COLUMN full_name VARCHAR"))
+        if 'nick' not in user_columns:
+            conn.execute(text("ALTER TABLE users ADD COLUMN nick VARCHAR"))
+        if 'steam_id' not in user_columns:
+            conn.execute(text("ALTER TABLE users ADD COLUMN steam_id VARCHAR"))
+
+        coupon_result = conn.execute(text("PRAGMA table_info(coupons)")).fetchall()
+        coupon_columns = [row[1] for row in coupon_result]
+        if 'channel_id' not in coupon_columns:
+            conn.execute(text("ALTER TABLE coupons ADD COLUMN channel_id VARCHAR"))
+        if 'interval_minutes' not in coupon_columns:
+            conn.execute(text("ALTER TABLE coupons ADD COLUMN interval_minutes INTEGER DEFAULT 0"))
+        if 'start_time' not in coupon_columns:
+            conn.execute(text("ALTER TABLE coupons ADD COLUMN start_time DATETIME"))
+        if 'last_sent_at' not in coupon_columns:
+            conn.execute(text("ALTER TABLE coupons ADD COLUMN last_sent_at DATETIME"))
+
         conn.commit()
 
 def init_db():

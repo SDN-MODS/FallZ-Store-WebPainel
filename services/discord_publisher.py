@@ -42,7 +42,6 @@ def publish_store_panel_to_discord():
                 {"name": "🪙 Comprar Coins", "value": "Adquira moedas virtuais.", "inline": True},
                 {"name": "💰 Meu Saldo", "value": "Consulte seu saldo e movimentações.", "inline": True},
                 {"name": "📦 Meus Pedidos", "value": "Acompanhe suas compras.", "inline": True},
-                {"name": "🎁 Cupons", "value": "Resgate códigos promocionais.", "inline": True},
                 {"name": "🎫 Suporte", "value": "Abra um ticket de atendimento.", "inline": True}
             ],
             "footer": {"text": footer_text}
@@ -69,7 +68,6 @@ def publish_store_panel_to_discord():
             {
                 "type": 1,
                 "components": [
-                    {"type": 2, "style": 2, "label": "🎁 Cupons", "custom_id": "btn_main_coupons"},
                     {"type": 2, "style": 4, "label": "🎫 Suporte Técnico", "custom_id": "btn_main_support"}
                 ]
             }
