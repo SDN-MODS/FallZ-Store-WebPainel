@@ -1,4 +1,10 @@
 import os
+import sys
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
 from flask import Flask, render_template, request, redirect, url_for, flash
 from sqlalchemy.orm import joinedload
 from database.db import init_db, SessionLocal

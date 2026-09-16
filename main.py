@@ -1,5 +1,15 @@
 import os
+import sys
 import asyncio
+
+# Garante que o diretório raiz e o diretório pai estejam no sys.path
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+PARENT_DIR = os.path.dirname(BASE_DIR)
+if PARENT_DIR not in sys.path:
+    sys.path.insert(0, PARENT_DIR)
+
 from dotenv import load_dotenv
 from database.db import init_db
 from bot.client import DayZStoreBot
