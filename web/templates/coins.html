@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciamento de Coins{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex justify-between items-center">
+    <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-coins text-amber-400"></i> Gerenciamento de Coins & Pacotes
+        </h1>
+        <p class="text-gray-400 text-sm">Configure os pacotes de moedas, adicione imagens personalizadas e realize ajustes manuais no saldo dos jogadores.</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Lista e Formulário de Pacotes de Coins -->
+    <div class="lg:col-span-2 space-y-6">
+        <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
+            <h2 class="text-lg font-bold text-white mb-4">Pacotes de Coins Cadastrados</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-gray-300">
+                    <thead class="text-xs uppercase bg-gray-700/50 text-gray-400">
+                        <tr>
+                            <th class="p-3">Pacote</th>
+                            <th class="p-3">Coins</th>
+                            <th class="p-3">Bônus</th>
+                            <th class="p-3">Preço (R$)</th>
+                            <th class="p-3">Status</th>
+                            <th class="p-3 text-right">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700">
+                        {% for pkg in packages %}
+                        <tr>
+                            <td class="p-3 font-semibold text-white flex items-center gap-3">
+                                {% if pkg.image_url %}
+                                <img src="{{ pkg.image_url }}" class="w-8 h-8 rounded object-cover border border-amber-500/30">
+                                {% else %}
+                                <div class="w-8 h-8 bg-amber-500/20 text-amber-400 rounded flex items-center justify-center font-bold text-xs">🪙</div>
+                                {% endif %}
+                                <div>
+                                    <div>{{ pkg.title }}</div>
+                                    {% if pkg.description %}<div class="text-xs text-gray-400 font-normal">{{ pkg.description }}</div>{% endif %}
+                                </div>
+                            </td>
+                            <td class="p-3 font-bold text-amber-400">{{ pkg.coins }} Coins</td>
+                            <td class="p-3 text-green-400">+{{ pkg.bonus_coins }}</td>
+                            <td class="p-3 font-mono font-bold text-green-300">R$ {{ "%.2f"|format(pkg.price_brl) }}</td>
+                            <td class="p-3">
+                                {% if pkg.active %}
+                                <span class="bg-green-500/20 text-green-400 text-xs px-2 py-0.5 rounded font-semibold">Ativo</span>
+                                {% else %}
+                                <span class="bg-red-500/20 text-red-400 text-xs px-2 py-0.5 rounded font-semibold">Inativo</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-3 text-right space-x-2">
+                                <a href="/coins/edit-package/{{ pkg.id }}" class="text-xs text-amber-400 hover:underline font-bold">Editar</a>
+                                <a href="/coins/toggle-package/{{ pkg.id }}" class="text-xs text-gray-400 hover:underline">Alternar</a>
+                                <a href="/coins/delete-package/{{ pkg.id }}" onclick="return confirm('Tem certeza que deseja EXCLUIR permanentemente o pacote {{ pkg.title }}?')" class="text-xs text-red-400 hover:underline font-semibold">Excluir</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Formulário para Criar/Editar Pacote -->
+        <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
+            <h2 class="text-lg font-bold text-white mb-4">
+                {% if edit_pkg %}✏️ Editar Pacote: {{ edit_pkg.title }}{% else %}➕ Criar Novo Pacote de Coins{% endif %}
+            </h2>
+            <form action="{% if edit_pkg %}/coins/edit-package/{{ edit_pkg.id }}{% else %}/coins/create-package{% endif %}" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Título do Pacote</label>
+                    <input type="text" name="title" value="{{ edit_pkg.title if edit_pkg else '' }}" required placeholder="Ex: 5.000 Coins VIP" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Quantidade de Coins</label>
+                    <input type="number" name="coins" value="{{ edit_pkg.coins if edit_pkg else '' }}" required placeholder="5000" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Coins de Bônus (+)</label>
+                    <input type="number" name="bonus_coins" value="{{ edit_pkg.bonus_coins if edit_pkg else '0' }}" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Preço em R$</label>
+                    <input type="number" step="0.01" name="price_brl" value="{{ edit_pkg.price_brl if edit_pkg else '' }}" required placeholder="450.00" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">URL da Imagem do Pacote (Opcional)</label>
+                    <input type="url" name="image_url" value="{{ edit_pkg.image_url if edit_pkg else '' }}" placeholder="https://i.imgur.com/..." class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Descrição</label>
+                    <input type="text" name="description" value="{{ edit_pkg.description if edit_pkg else '' }}" placeholder="Descrição promocional do pacote" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                </div>
+                {% if edit_pkg %}
+                <div class="md:col-span-2 flex items-center gap-2">
+                    <input type="checkbox" name="active" value="true" id="active_chk" {% if edit_pkg.active %}checked{% endif %} class="rounded border-gray-700 text-amber-500 focus:ring-0">
+                    <label for="active_chk" class="text-xs text-gray-300 font-medium">Pacote Ativo na Loja</label>
+                </div>
+                {% endif %}
+                <div class="md:col-span-2 flex gap-3">
+                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold py-2.5 rounded-lg transition">
+                        {% if edit_pkg %}Salvar Alterações do Pacote{% else %}Criar Pacote de Coins{% endif %}
+                    </button>
+                    {% if edit_pkg %}
+                    <a href="/coins" class="bg-gray-700 hover:bg-gray-600 text-white font-semibold px-4 py-2.5 rounded-lg transition text-sm flex items-center justify-center">
+                        Cancelar
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Painel Lateral: Ajuste Manual de Saldo -->
+    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6 h-fit">
+        <h2 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-hand-holding-dollar text-green-400"></i> Ajuste Manual de Saldo
+        </h2>
+        <p class="text-xs text-gray-400 mb-4">Adicione ou remova coins de qualquer jogador. Todas as ações geram logs de auditoria.</p>
+
+        <form action="/coins/adjust-balance" method="POST" class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Selecione o Jogador</label>
+                <select name="user_id" required class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                    {% for user in users %}
+                    <option value="{{ user.id }}">{{ user.username }} (Saldo: {{ user.coins }} C)</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Quantidade de Coins (+ ou -)</label>
+                <input type="number" name="amount" required placeholder="Use 500 para adicionar ou -500 para remover" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Motivo do Ajuste</label>
+                <textarea name="reason" required placeholder="Ex: Evento de fim de semana / Correção de bug" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500 h-24"></textarea>
+            </div>
+            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg transition">
+                Aplicar Ajuste de Saldo
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

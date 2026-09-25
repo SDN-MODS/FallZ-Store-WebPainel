@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Configurações & Publicação no Discord{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex justify-between items-center">
+    <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-gear text-amber-400"></i> Configurações & Conexão com Discord
+        </h1>
+        <p class="text-gray-400 text-sm">Configure o Token do Bot, ID do Canal e publique o painel interativo da loja no Discord com 1 clique.</p>
+    </div>
+</div>
+
+<!-- Card 1: Publicação da Loja no Discord com 1 Clique -->
+<div class="bg-gray-800 border border-gray-700 rounded-xl p-6 mb-8 max-w-4xl">
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
+        <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-brands fa-discord text-indigo-400 text-xl"></i> Publicar Painel da Loja no Discord
+            </h2>
+            <p class="text-xs text-gray-400">Envie ou atualize a mensagem fixa da loja com botões no seu canal do Discord.</p>
+        </div>
+        <form action="/settings/publish-store-panel" method="POST">
+            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-3 rounded-xl text-sm transition flex items-center gap-2 shadow-lg shadow-indigo-600/20">
+                <i class="fa-solid fa-paper-plane"></i> 🚀 Publicar Painel da Loja no Discord
+            </button>
+        </form>
+    </div>
+
+    {% if settings.bot_invite_url %}
+    <div class="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-lg flex items-center justify-between text-xs text-indigo-200">
+        <div>
+            <span class="font-bold text-white">1º Passo:</span> Convide o Bot para o seu servidor primeiro:
+        </div>
+        <a href="{{ settings.bot_invite_url }}" target="_blank" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold px-3 py-1.5 rounded transition">
+            Convidar Bot Agora
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Card 2: Formulário de Configuração Geral -->
+<div class="bg-gray-800 border border-gray-700 rounded-xl p-6 max-w-4xl">
+    <form action="/settings/save" method="POST" class="space-y-6">
+        <div>
+            <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-3">1. Credenciais do Bot no Discord</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">ID do Cliente do Bot (Application Client ID)</label>
+                    <input type="text" name="bot_client_id" value="{{ settings.bot_client_id }}" placeholder="Ex: 123456789012345678" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500 font-mono">
+                    <span class="text-[10px] text-gray-500">Usado para gerar o link de convite.</span>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Token do Bot (Bot Token)</label>
+                    <input type="password" name="bot_token" value="{{ settings.bot_token }}" placeholder="MTI0... (Cole o token do seu bot aqui)" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500 font-mono">
+                    <span class="text-[10px] text-gray-500">Obtenha no Discord Developer Portal ➔ Bot ➔ Reset Token.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-700 pt-4">
+            <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-3">2. Canais do Discord</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">ID do Canal da Loja (Onde a loja será publicada)</label>
+                    <input type="text" name="store_channel_id" value="{{ settings.store_channel_id }}" placeholder="Ex: 109876543210987654" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500 font-mono">
+                    <span class="text-[10px] text-gray-500">Clique com botão direito no canal no Discord ➔ Copiar ID do Canal.</span>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">ID do Canal de Suporte</label>
+                    <input type="text" name="support_channel_id" value="{{ settings.support_channel_id }}" placeholder="ID do canal de tickets" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500 font-mono">
+                </div>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-700 pt-4">
+            <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-3">3. Personalização Visual da Loja</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Nome da Loja</label>
+                    <input type="text" name="store_name" value="{{ settings.store_name }}" required class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">URL da Logo / Banner da Loja</label>
+                    <input type="url" name="logo_url" value="{{ settings.logo_url }}" required class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1">Mensagem de Boas-Vindas do Bot</label>
+                    <textarea name="bot_welcome_message" required class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500 h-20">{{ settings.bot_welcome_message }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold py-3 rounded-xl transition">
+            Salvar Configurações
+        </button>
+    </form>
+</div>
+{% endblock %}

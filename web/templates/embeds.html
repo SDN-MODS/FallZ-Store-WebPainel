@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}Personalização de Embeds do Bot{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex justify-between items-center">
+    <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-paintbrush text-purple-400"></i> Personalização de Embeds & Conversas do Bot
+        </h1>
+        <p class="text-gray-400 text-sm">Altere o título, texto, campos internos (fields), cor HEX, rodapé, thumbnail e imagem de qualquer mensagem do Bot em tempo real.</p>
+    </div>
+</div>
+
+<!-- Seletor em abas horizontais e layout de 2 colunas largas -->
+<div class="mb-6 bg-gray-800 border border-gray-700 rounded-xl p-3 flex flex-wrap gap-2 overflow-x-auto">
+    {% for tpl in templates %}
+    <a href="/embeds?key={{ tpl.key }}" class="px-4 py-2 rounded-lg text-xs transition font-semibold flex items-center gap-2 border {% if selected_key == tpl.key %}bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-900/30{% else %}bg-gray-900/60 border-gray-700 text-gray-300 hover:bg-gray-700{% endif %}">
+        <span class="w-2.5 h-2.5 rounded-full" style="background-color: {{ tpl.color }};"></span>
+        <span>{{ tpl.name }}</span>
+    </a>
+    {% endfor %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- Formulário de Edição do Embed Selecionado (Coluna Esquerda) -->
+    <div class="lg:col-span-6 bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-xl space-y-5">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-700">
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-pen-to-square text-purple-400"></i> Editar Embed: <span class="text-purple-300 font-extrabold">{{ selected_tpl.name }}</span>
+            </h2>
+            <span class="text-xs font-mono bg-purple-500/20 text-purple-300 px-2.5 py-1 rounded-md border border-purple-500/30">key: {{ selected_tpl.key }}</span>
+        </div>
+
+        <form action="/embeds/save/{{ selected_tpl.key }}" method="POST" class="space-y-5">
+            <div>
+                <label class="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">Título do Embed</label>
+                <input type="text" id="input-title" name="title" value="{{ selected_tpl.title }}" required class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-purple-500 font-bold tracking-wide" oninput="updatePreview()">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">Descrição / Texto Principal da Mensagem</label>
+                <textarea id="input-desc" name="description" required class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-purple-500 h-28 font-sans leading-relaxed" oninput="updatePreview()">{{ selected_tpl.description }}</textarea>
+            </div>
+
+            <!-- Campos Customizados do Embed (Fields) -->
+            <div class="border-t border-b border-gray-700 py-4 my-3 space-y-3">
+                <div class="flex items-center justify-between">
+                    <label class="block text-xs font-bold text-amber-400 uppercase tracking-wider">
+                        <i class="fa-solid fa-list-check"></i> Campos Internos da Mensagem (Fields)
+                    </label>
+                    <button type="button" onclick="addFieldRow()" class="text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold px-3 py-1 rounded border border-amber-500/40 transition">
+                        + Adicionar Campo
+                    </button>
+                </div>
+                <p class="text-[11px] text-gray-400">Personalize os nomes das opções (Ex: 🛒 Loja, 🪙 Comprar Coins, 💰 Meu Saldo, etc) e suas descrições.</p>
+
+                <div id="fields-container" class="space-y-3">
+                    <!-- Gerado via JS ou Jinja2 -->
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">Cor Lateral em HEX</label>
+                    <div class="flex items-center gap-2">
+                        <input type="color" id="input-color-picker" value="{{ selected_tpl.color }}" class="w-11 h-10 bg-transparent border-0 cursor-pointer rounded" oninput="syncColorInput(this.value)">
+                        <input type="text" id="input-color-hex" name="color" value="{{ selected_tpl.color }}" required class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs font-mono font-bold text-white focus:outline-none focus:border-purple-500 uppercase" oninput="syncColorPicker(this.value)">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">Texto do Rodapé (Footer)</label>
+                    <input type="text" id="input-footer" name="footer_text" value="{{ selected_tpl.footer_text or '' }}" placeholder="Ex: Regra Central: Dinheiro ➔ Coins ➔ Produtos" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-purple-500" oninput="updatePreview()">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">URL da Thumbnail (Ícone do canto superior direito)</label>
+                <input type="url" id="input-thumb" name="thumbnail_url" value="{{ selected_tpl.thumbnail_url or '' }}" placeholder="https://i.imgur.com/logo.png" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-purple-500 font-mono" oninput="updatePreview()">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">URL da Imagem Grande / Banner Principal</label>
+                <input type="url" id="input-image" name="image_url" value="{{ selected_tpl.image_url or '' }}" placeholder="https://i.imgur.com/banner.png" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-purple-500 font-mono" oninput="updatePreview()">
+            </div>
+
+            <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-extrabold py-3.5 rounded-lg transition text-sm flex items-center justify-center gap-2 shadow-lg shadow-purple-900/40">
+                <i class="fa-solid fa-floppy-disk"></i> Salvar Personalização do Embed
+            </button>
+        </form>
+    </div>
+
+    <!-- Live Preview Largo Simulando o Discord Desktop (Coluna Direita) -->
+    <div class="lg:col-span-6 bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-xl h-fit">
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-700">
+            <h2 class="text-xs font-extrabold text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-brands fa-discord text-indigo-400 text-base"></i> Pré-Visualização Ampliada no Discord (Live Preview)
+            </h2>
+            <span class="text-[11px] text-gray-400 font-mono">Visualização em Tempo Real</span>
+        </div>
+
+        <!-- Simulated Discord Message Window -->
+        <div class="bg-[#313338] p-5 rounded-xl font-sans text-sm text-[#dbdee1] border border-gray-700 space-y-4 shadow-inner">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center font-black text-gray-900 text-sm shadow">BOT</div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="font-bold text-white text-sm">DayZ Store Bot</span>
+                        <span class="bg-[#5865f2] text-[10px] text-white px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">BOT</span>
+                        <span class="text-[11px] text-[#949ba4] ml-1">Hoje às 12:00</span>
+                    </div>
+                    <div class="text-[11px] text-[#949ba4]">Mensagem Oficial do Servidor</div>
+                </div>
+            </div>
+
+            <!-- Wide Embed Border & Box -->
+            <div id="preview-border" class="bg-[#2b2d31] p-4 rounded-lg border-l-4 space-y-3 relative shadow-md" style="border-color: {{ selected_tpl.color }};">
+                <div class="flex justify-between items-start gap-4">
+                    <div id="preview-title" class="font-extrabold text-white text-base tracking-wide">
+                        {{ selected_tpl.title }}
+                    </div>
+                    <img id="preview-thumb" src="{{ selected_tpl.thumbnail_url or '' }}" class="w-16 h-12 rounded object-cover border border-gray-600/50 shadow {% if not selected_tpl.thumbnail_url %}hidden{% endif %}">
+                </div>
+
+                <div id="preview-desc" class="text-xs text-[#dbdee1] whitespace-pre-wrap leading-relaxed font-sans">
+                    {{ selected_tpl.description }}
+                </div>
+
+                <!-- Preview Dinâmico dos Campos (Fields) -->
+                <div id="preview-fields" class="grid grid-cols-2 gap-2 text-xs border-t border-b border-gray-700/60 py-3 my-2 bg-gray-900/30 p-2.5 rounded">
+                    <!-- Inserido dinamicamente via JS -->
+                </div>
+
+                <img id="preview-image" src="{{ selected_tpl.image_url or '' }}" class="w-full rounded-lg object-cover max-h-64 border border-gray-700/50 shadow {% if not selected_tpl.image_url %}hidden{% endif %}">
+
+                <div id="preview-footer" class="text-[11px] text-[#949ba4] border-t border-gray-700/60 pt-2.5 font-medium flex items-center gap-1.5 {% if not selected_tpl.footer_text %}hidden{% endif %}">
+                    <i class="fa-solid fa-circle-info text-[10px]"></i>
+                    <span>{{ selected_tpl.footer_text }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let existingFields = [];
+{% if selected_tpl.fields_json %}
+try {
+    existingFields = {{ selected_tpl.fields_json|safe }};
+} catch(e) {
+    existingFields = [];
+}
+{% endif %}
+
+function renderFieldInputs() {
+    const container = document.getElementById('fields-container');
+    container.innerHTML = '';
+
+    if (existingFields.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-500 italic">Nenhum campo adicionado ainda.</p>';
+    }
+
+    existingFields.forEach((field, index) => {
+        const div = document.createElement('div');
+        div.className = "p-3 bg-gray-900/70 border border-gray-700 rounded-lg space-y-2 relative";
+        div.innerHTML = `
+            <button type="button" onclick="removeFieldRow(${index})" class="absolute top-2 right-2 text-red-400 hover:text-red-300 text-xs font-bold">
+                <i class="fa-solid fa-trash"></i>
+            </button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 pr-6">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase">Nome do Campo (Opção)</label>
+                    <input type="text" name="field_names[]" value="${field.name || ''}" class="w-full bg-gray-800 border border-gray-700 rounded p-1.5 text-xs text-white focus:outline-none focus:border-amber-500 font-bold" oninput="updateFieldData(${index}, 'name', this.value)">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase">Descrição / Valor</label>
+                    <input type="text" name="field_values[]" value="${field.value || ''}" class="w-full bg-gray-800 border border-gray-700 rounded p-1.5 text-xs text-white focus:outline-none focus:border-amber-500" oninput="updateFieldData(${index}, 'value', this.value)">
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+    updatePreview();
+}
+
+function addFieldRow() {
+    existingFields.push({ name: "Novo Campo", value: "Descrição da opção...", inline: true });
+    renderFieldInputs();
+}
+
+function removeFieldRow(index) {
+    existingFields.splice(index, 1);
+    renderFieldInputs();
+}
+
+function updateFieldData(index, key, val) {
+    existingFields[index][key] = val;
+    updatePreview();
+}
+
+function syncColorInput(hex) {
+    document.getElementById('input-color-hex').value = hex;
+    document.getElementById('preview-border').style.borderColor = hex;
+}
+
+function syncColorPicker(hex) {
+    if (/^#[0-9A-F]{6}$/i.test(hex)) {
+        document.getElementById('input-color-picker').value = hex;
+        document.getElementById('preview-border').style.borderColor = hex;
+    }
+}
+
+function updatePreview() {
+    const title = document.getElementById('input-title').value;
+    const desc = document.getElementById('input-desc').value;
+    const footer = document.getElementById('input-footer').value;
+    const thumb = document.getElementById('input-thumb').value;
+    const image = document.getElementById('input-image').value;
+
+    document.getElementById('preview-title').innerText = title || 'Título do Embed';
+    document.getElementById('preview-desc').innerText = desc || 'Descrição da mensagem...';
+
+    const fieldsContainer = document.getElementById('preview-fields');
+    fieldsContainer.innerHTML = '';
+    if (existingFields && existingFields.length > 0) {
+        fieldsContainer.classList.remove('hidden');
+        existingFields.forEach(f => {
+            if (f.name || f.value) {
+                const fDiv = document.createElement('div');
+                fDiv.innerHTML = `<span class="font-bold text-amber-400">${f.name || ''}:</span> ${f.value || ''}`;
+                fieldsContainer.appendChild(fDiv);
+            }
+        });
+    } else {
+        fieldsContainer.classList.add('hidden');
+    }
+
+    const footerElem = document.getElementById('preview-footer');
+    if (footer.trim()) {
+        footerElem.innerText = footer;
+        footerElem.classList.remove('hidden');
+    } else {
+        footerElem.classList.add('hidden');
+    }
+
+    const thumbElem = document.getElementById('preview-thumb');
+    if (thumb.trim()) {
+        thumbElem.src = thumb;
+        thumbElem.classList.remove('hidden');
+    } else {
+        thumbElem.classList.add('hidden');
+    }
+
+    const imageElem = document.getElementById('preview-image');
+    if (image.trim()) {
+        imageElem.src = image;
+        imageElem.classList.remove('hidden');
+    } else {
+        imageElem.classList.add('hidden');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    renderFieldInputs();
+});
+</script>
+{% endblock %}
