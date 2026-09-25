@@ -8,7 +8,17 @@ DB_FILE = os.getenv("DATABASE_URL", "sqlite:///dayz_store.db")
 engine = create_engine(DB_FILE, connect_args={"check_same_thread": False})
 SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine, expire_on_commit=False))
 
+import json
+
 def seed_default_embed_templates(session):
+    main_menu_fields = json.dumps([
+        {"name": "🛒 Loja", "value": "Explore armas, equipamentos e veículos.", "inline": True},
+        {"name": "🪙 Comprar Coins", "value": "Adquira moedas virtuais.", "inline": True},
+        {"name": "💰 Meu Saldo", "value": "Consulte seu saldo e movimentações.", "inline": True},
+        {"name": "📦 Meus Pedidos", "value": "Acompanhe suas compras.", "inline": True},
+        {"name": "🎫 Suporte", "value": "Abra um ticket de atendimento.", "inline": True}
+    ], ensure_ascii=False)
+
     defaults = [
         BotEmbedTemplate(
             key="main_menu",
@@ -16,7 +26,8 @@ def seed_default_embed_templates(session):
             title="🏪 LOJA DAYZ — MENU PRINCIPAL",
             description="Seja bem-vindo à nossa loja virtual!\nUse os botões abaixo para navegar sem precisar digitar comandos.",
             color="#FFD700",
-            footer_text="Regra Central: Dinheiro ➔ Coins ➔ Produtos"
+            footer_text="Regra Central: Dinheiro ➔ Coins ➔ Produtos",
+            fields_json=main_menu_fields
         ),
         BotEmbedTemplate(
             key="coin_store",
@@ -143,6 +154,11 @@ def migrate_db():
             conn.execute(text("ALTER TABLE coupons ADD COLUMN start_time DATETIME"))
         if 'last_sent_at' not in coupon_columns:
             conn.execute(text("ALTER TABLE coupons ADD COLUMN last_sent_at DATETIME"))
+
+        tpl_result = conn.execute(text("PRAGMA table_info(bot_embed_templates)")).fetchall()
+        tpl_columns = [row[1] for row in tpl_result]
+        if 'fields_json' not in tpl_columns:
+            conn.execute(text("ALTER TABLE bot_embed_templates ADD COLUMN fields_json TEXT"))
 
         conn.commit()
 

@@ -26,7 +26,7 @@ def get_embed_template(key: str):
     finally:
         session.close()
 
-def update_embed_template(key: str, title: str, description: str, color: str, footer_text: str = "", thumbnail_url: str = "", image_url: str = ""):
+def update_embed_template(key: str, title: str, description: str, color: str, footer_text: str = "", thumbnail_url: str = "", image_url: str = "", fields_json: str = None):
     session = SessionLocal()
     try:
         tpl = session.query(BotEmbedTemplate).filter_by(key=key).first()
@@ -40,6 +40,8 @@ def update_embed_template(key: str, title: str, description: str, color: str, fo
         tpl.footer_text = footer_text
         tpl.thumbnail_url = thumbnail_url
         tpl.image_url = image_url
+        if fields_json is not None:
+            tpl.fields_json = fields_json
 
         session.commit()
         log_action("EMBED_TEMPLATE_UPDATED", f"Embed '{key}' customizado via painel web.")

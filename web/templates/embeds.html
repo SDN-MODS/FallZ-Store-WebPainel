@@ -8,7 +8,7 @@
         <h1 class="text-2xl font-bold text-white flex items-center gap-2">
             <i class="fa-solid fa-paintbrush text-purple-400"></i> Personalização de Embeds & Conversas do Bot
         </h1>
-        <p class="text-gray-400 text-sm">Altere o título, texto, cor HEX, rodapé, thumbnail e imagem grande de qualquer mensagem do Bot no Discord em tempo real.</p>
+        <p class="text-gray-400 text-sm">Altere o título, texto, campos internos (fields), cor HEX, rodapé, thumbnail e imagem de qualquer mensagem do Bot em tempo real.</p>
     </div>
 </div>
 
@@ -24,8 +24,8 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
     <!-- Formulário de Edição do Embed Selecionado (Coluna Esquerda) -->
-    <div class="lg:col-span-6 bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-xl">
-        <div class="flex items-center justify-between mb-6 pb-3 border-b border-gray-700">
+    <div class="lg:col-span-6 bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-xl space-y-5">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-700">
             <h2 class="text-lg font-bold text-white flex items-center gap-2">
                 <i class="fa-solid fa-pen-to-square text-purple-400"></i> Editar Embed: <span class="text-purple-300 font-extrabold">{{ selected_tpl.name }}</span>
             </h2>
@@ -39,9 +39,25 @@
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">Descrição / Texto Completo da Mensagem</label>
-                <textarea id="input-desc" name="description" required class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-purple-500 h-36 font-sans leading-relaxed" oninput="updatePreview()">{{ selected_tpl.description }}</textarea>
-                <p class="text-[11px] text-gray-400 mt-1">Suporta quebras de linha, emojis e formatação Markdown do Discord (`**negrito**`, `*itálico*`, `• listas`).</p>
+                <label class="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">Descrição / Texto Principal da Mensagem</label>
+                <textarea id="input-desc" name="description" required class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-purple-500 h-28 font-sans leading-relaxed" oninput="updatePreview()">{{ selected_tpl.description }}</textarea>
+            </div>
+
+            <!-- Campos Customizados do Embed (Fields) -->
+            <div class="border-t border-b border-gray-700 py-4 my-3 space-y-3">
+                <div class="flex items-center justify-between">
+                    <label class="block text-xs font-bold text-amber-400 uppercase tracking-wider">
+                        <i class="fa-solid fa-list-check"></i> Campos Internos da Mensagem (Fields)
+                    </label>
+                    <button type="button" onclick="addFieldRow()" class="text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold px-3 py-1 rounded border border-amber-500/40 transition">
+                        + Adicionar Campo
+                    </button>
+                </div>
+                <p class="text-[11px] text-gray-400">Personalize os nomes das opções (Ex: 🛒 Loja, 🪙 Comprar Coins, 💰 Meu Saldo, etc) e suas descrições.</p>
+
+                <div id="fields-container" class="space-y-3">
+                    <!-- Gerado via JS ou Jinja2 -->
+                </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
@@ -110,16 +126,10 @@
                     {{ selected_tpl.description }}
                 </div>
 
-                <!-- Simulação dos Campos da Loja se for o Menu Principal -->
-                {% if selected_key == 'main_menu' %}
-                <div class="grid grid-cols-2 gap-2 text-xs border-t border-b border-gray-700/60 py-3 my-2 bg-gray-900/30 p-2 rounded">
-                    <div><span class="font-bold text-amber-400">🛒 Loja:</span> Explore armas, equipamentos e veículos.</div>
-                    <div><span class="font-bold text-amber-400">🪙 Comprar Coins:</span> Adquira moedas virtuais.</div>
-                    <div><span class="font-bold text-amber-400">💰 Meu Saldo:</span> Consulte seu saldo e movimentações.</div>
-                    <div><span class="font-bold text-amber-400">📦 Meus Pedidos:</span> Acompanhe suas compras.</div>
-                    <div><span class="font-bold text-amber-400">🎫 Suporte:</span> Abra um ticket de atendimento.</div>
+                <!-- Preview Dinâmico dos Campos (Fields) -->
+                <div id="preview-fields" class="grid grid-cols-2 gap-2 text-xs border-t border-b border-gray-700/60 py-3 my-2 bg-gray-900/30 p-2.5 rounded">
+                    <!-- Inserido dinamicamente via JS -->
                 </div>
-                {% endif %}
 
                 <img id="preview-image" src="{{ selected_tpl.image_url or '' }}" class="w-full rounded-lg object-cover max-h-64 border border-gray-700/50 shadow {% if not selected_tpl.image_url %}hidden{% endif %}">
 
@@ -133,6 +143,61 @@
 </div>
 
 <script>
+let existingFields = [];
+{% if selected_tpl.fields_json %}
+try {
+    existingFields = {{ selected_tpl.fields_json|safe }};
+} catch(e) {
+    existingFields = [];
+}
+{% endif %}
+
+function renderFieldInputs() {
+    const container = document.getElementById('fields-container');
+    container.innerHTML = '';
+
+    if (existingFields.length === 0) {
+        container.innerHTML = '<p class="text-xs text-gray-500 italic">Nenhum campo adicionado ainda.</p>';
+    }
+
+    existingFields.forEach((field, index) => {
+        const div = document.createElement('div');
+        div.className = "p-3 bg-gray-900/70 border border-gray-700 rounded-lg space-y-2 relative";
+        div.innerHTML = `
+            <button type="button" onclick="removeFieldRow(${index})" class="absolute top-2 right-2 text-red-400 hover:text-red-300 text-xs font-bold">
+                <i class="fa-solid fa-trash"></i>
+            </button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 pr-6">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase">Nome do Campo (Opção)</label>
+                    <input type="text" name="field_names[]" value="${field.name || ''}" class="w-full bg-gray-800 border border-gray-700 rounded p-1.5 text-xs text-white focus:outline-none focus:border-amber-500 font-bold" oninput="updateFieldData(${index}, 'name', this.value)">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase">Descrição / Valor</label>
+                    <input type="text" name="field_values[]" value="${field.value || ''}" class="w-full bg-gray-800 border border-gray-700 rounded p-1.5 text-xs text-white focus:outline-none focus:border-amber-500" oninput="updateFieldData(${index}, 'value', this.value)">
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+    updatePreview();
+}
+
+function addFieldRow() {
+    existingFields.push({ name: "Novo Campo", value: "Descrição da opção...", inline: true });
+    renderFieldInputs();
+}
+
+function removeFieldRow(index) {
+    existingFields.splice(index, 1);
+    renderFieldInputs();
+}
+
+function updateFieldData(index, key, val) {
+    existingFields[index][key] = val;
+    updatePreview();
+}
+
 function syncColorInput(hex) {
     document.getElementById('input-color-hex').value = hex;
     document.getElementById('preview-border').style.borderColor = hex;
@@ -154,6 +219,21 @@ function updatePreview() {
 
     document.getElementById('preview-title').innerText = title || 'Título do Embed';
     document.getElementById('preview-desc').innerText = desc || 'Descrição da mensagem...';
+
+    const fieldsContainer = document.getElementById('preview-fields');
+    fieldsContainer.innerHTML = '';
+    if (existingFields && existingFields.length > 0) {
+        fieldsContainer.classList.remove('hidden');
+        existingFields.forEach(f => {
+            if (f.name || f.value) {
+                const fDiv = document.createElement('div');
+                fDiv.innerHTML = `<span class="font-bold text-amber-400">${f.name || ''}:</span> ${f.value || ''}`;
+                fieldsContainer.appendChild(fDiv);
+            }
+        });
+    } else {
+        fieldsContainer.classList.add('hidden');
+    }
 
     const footerElem = document.getElementById('preview-footer');
     if (footer.trim()) {
@@ -179,5 +259,9 @@ function updatePreview() {
         imageElem.classList.add('hidden');
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    renderFieldInputs();
+});
 </script>
 {% endblock %}

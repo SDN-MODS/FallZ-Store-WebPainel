@@ -33,17 +33,27 @@ def publish_store_panel_to_discord():
         except Exception:
             color_int = 16766720
 
-        embed = {
-            "title": title,
-            "description": description,
-            "color": color_int,
-            "fields": [
+        fields_data = []
+        if tpl and tpl.fields_json:
+            try:
+                fields_data = json.loads(tpl.fields_json)
+            except Exception:
+                pass
+
+        if not fields_data:
+            fields_data = [
                 {"name": "🛒 Loja", "value": "Explore armas, equipamentos e veículos.", "inline": True},
                 {"name": "🪙 Comprar Coins", "value": "Adquira moedas virtuais.", "inline": True},
                 {"name": "💰 Meu Saldo", "value": "Consulte seu saldo e movimentações.", "inline": True},
                 {"name": "📦 Meus Pedidos", "value": "Acompanhe suas compras.", "inline": True},
                 {"name": "🎫 Suporte", "value": "Abra um ticket de atendimento.", "inline": True}
-            ],
+            ]
+
+        embed = {
+            "title": title,
+            "description": description,
+            "color": color_int,
+            "fields": fields_data,
             "footer": {"text": footer_text}
         }
 

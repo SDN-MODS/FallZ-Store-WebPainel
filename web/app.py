@@ -239,6 +239,8 @@ def embeds():
     finally:
         session.close()
 
+import json
+
 @app.route('/embeds/save/<key>', methods=['POST'])
 def handle_save_embed(key):
     title = request.form.get('title')
@@ -248,7 +250,24 @@ def handle_save_embed(key):
     thumbnail_url = request.form.get('thumbnail_url', '')
     image_url = request.form.get('image_url', '')
 
-    ok, msg = update_embed_template(key, title, description, color, footer_text, thumbnail_url, image_url)
+    field_names = request.form.getlist('field_names[]')
+    field_values = request.form.getlist('field_values[]')
+    field_inlines = request.form.getlist('field_inlines[]')
+
+    fields_list = []
+    for idx, f_name in enumerate(field_names):
+        if f_name.strip():
+            f_val = field_values[idx] if idx < len(field_values) else ''
+            is_inline = str(idx) in field_inlines or 'true' in field_inlines
+            fields_list.append({
+                "name": f_name.strip(),
+                "value": f_val.strip(),
+                "inline": is_inline
+            })
+
+    fields_json = json.dumps(fields_list, ensure_ascii=False) if fields_list else ""
+
+    ok, msg = update_embed_template(key, title, description, color, footer_text, thumbnail_url, image_url, fields_json=fields_json)
     if ok:
         flash(msg, "success")
     else:

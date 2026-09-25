@@ -141,6 +141,7 @@ class BotEmbedTemplate(Base):
     footer_text = Column(String, default="Loja DayZ — Economia Virtual")
     thumbnail_url = Column(String, nullable=True)
     image_url = Column(String, nullable=True)
+    fields_json = Column(Text, nullable=True) # JSON contendo a lista de campos [{"name": "...", "value": "...", "inline": true}]
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
 
