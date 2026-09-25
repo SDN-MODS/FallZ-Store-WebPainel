@@ -258,7 +258,8 @@ def handle_save_embed(key):
     for idx, f_name in enumerate(field_names):
         if f_name.strip():
             f_val = field_values[idx] if idx < len(field_values) else ''
-            is_inline = str(idx) in field_inlines or 'true' in field_inlines
+            inline_val = field_inlines[idx] if idx < len(field_inlines) else 'true'
+            is_inline = (inline_val == 'true')
             fields_list.append({
                 "name": f_name.strip(),
                 "value": f_val.strip(),
