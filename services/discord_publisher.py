@@ -69,16 +69,21 @@ def publish_store_panel_to_discord():
                 "type": 1,
                 "components": [
                     {"type": 2, "style": 1, "label": "🛒 Loja", "custom_id": "btn_main_store"},
-                    {"type": 2, "style": 1, "label": "🛍️ Ver Carrinho", "custom_id": "btn_main_cart"},
-                    {"type": 2, "style": 3, "label": "🪙 Comprar Coins", "custom_id": "btn_main_buy_coins"}
+                    {"type": 2, "style": 1, "label": "🛍️ Ver Carrinho", "custom_id": "btn_main_cart"}
                 ]
             },
             {
                 "type": 1,
                 "components": [
-                    {"type": 2, "style": 2, "label": "💰 Meu Saldo", "custom_id": "btn_main_balance"},
+                    {"type": 2, "style": 3, "label": "🪙 Comprar Coins", "custom_id": "btn_main_buy_coins"},
+                    {"type": 2, "style": 2, "label": "💰 Meu Saldo", "custom_id": "btn_main_balance"}
+                ]
+            },
+            {
+                "type": 1,
+                "components": [
                     {"type": 2, "style": 2, "label": "📦 Meus Pedidos", "custom_id": "btn_main_orders"},
-                    {"type": 2, "style": 4, "label": "🎫 Suporte", "custom_id": "btn_main_support"}
+                    {"type": 2, "style": 4, "label": "🎫 Suporte Técnico", "custom_id": "btn_main_support"}
                 ]
             }
         ]
