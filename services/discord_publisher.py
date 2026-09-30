@@ -68,22 +68,17 @@ def publish_store_panel_to_discord():
             {
                 "type": 1,
                 "components": [
-                    {"type": 2, "style": 1, "label": "ㅤㅤㅤ🛒 Lojaㅤㅤㅤ", "custom_id": "btn_main_store"},
-                    {"type": 2, "style": 1, "label": "ㅤㅤ🛍️ Carrinhoㅤㅤ", "custom_id": "btn_main_cart"}
+                    {"type": 2, "style": 1, "label": "ㅤㅤㅤㅤ🛒 Lojaㅤㅤㅤㅤ", "custom_id": "btn_main_store"},
+                    {"type": 2, "style": 1, "label": "ㅤㅤㅤ🛍️ Carrinhoㅤㅤㅤ", "custom_id": "btn_main_cart"},
+                    {"type": 2, "style": 3, "label": "🪙 Comprar Coins", "custom_id": "btn_main_buy_coins"}
                 ]
             },
             {
                 "type": 1,
                 "components": [
-                    {"type": 2, "style": 3, "label": "🪙 Comprar Coins", "custom_id": "btn_main_buy_coins"},
-                    {"type": 2, "style": 2, "label": "ㅤㅤ💰 Meu Saldoㅤㅤ", "custom_id": "btn_main_balance"}
-                ]
-            },
-            {
-                "type": 1,
-                "components": [
-                    {"type": 2, "style": 2, "label": "ㅤㅤㅤ📦 Pedidosㅤㅤㅤ", "custom_id": "btn_main_orders"},
-                    {"type": 2, "style": 4, "label": "ㅤㅤㅤ🎫 Suporteㅤㅤㅤ", "custom_id": "btn_main_support"}
+                    {"type": 2, "style": 2, "label": "ㅤㅤ💰 Meu Saldoㅤㅤ", "custom_id": "btn_main_balance"},
+                    {"type": 2, "style": 2, "label": "ㅤㅤㅤㅤ📦 Pedidosㅤㅤㅤ", "custom_id": "btn_main_orders"},
+                    {"type": 2, "style": 4, "label": "ㅤㅤㅤㅤ🎫 Suporteㅤㅤㅤ", "custom_id": "btn_main_support"}
                 ]
             }
         ]
