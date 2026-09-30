@@ -75,8 +75,8 @@ class MainMenuView(View):
     def __init__(self):
         super().__init__(timeout=None) # Persistent view
 
-    # Linha 1 (row 0): 2 Botões de tamanho igual grande
-    @button(label="🛒 Loja", style=discord.ButtonStyle.primary, custom_id="btn_main_store", row=0)
+    # Linha 1 (row 0) - 3 Botões alinhados de tamanho equalizado
+    @button(label="🛒 Loja   ", style=discord.ButtonStyle.primary, custom_id="btn_main_store", row=0)
     async def btn_store(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await check_registration_or_prompt(interaction):
             return
@@ -84,7 +84,7 @@ class MainMenuView(View):
         embed = view.get_embed()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
-    @button(label="🛍️ Ver Carrinho", style=discord.ButtonStyle.primary, custom_id="btn_main_cart", row=0)
+    @button(label="🛍️ Carrinho ", style=discord.ButtonStyle.primary, custom_id="btn_main_cart", row=0)
     async def btn_cart(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await check_registration_or_prompt(interaction):
             return
@@ -94,8 +94,7 @@ class MainMenuView(View):
         embed = view.get_embed()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
-    # Linha 2 (row 1): 2 Botões de tamanho igual grande
-    @button(label="🪙 Comprar Coins", style=discord.ButtonStyle.success, custom_id="btn_main_buy_coins", row=1)
+    @button(label="🪙 Comprar Coins", style=discord.ButtonStyle.success, custom_id="btn_main_buy_coins", row=0)
     async def btn_buy_coins(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await check_registration_or_prompt(interaction):
             return
@@ -103,7 +102,8 @@ class MainMenuView(View):
         embed = view.get_embed()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
-    @button(label="💰 Meu Saldo", style=discord.ButtonStyle.secondary, custom_id="btn_main_balance", row=1)
+    # Linha 2 (row 1) - 3 Botões alinhados de tamanho equalizado
+    @button(label="💰 Meu Saldo ", style=discord.ButtonStyle.secondary, custom_id="btn_main_balance", row=1)
     async def btn_balance(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await check_registration_or_prompt(interaction):
             return
@@ -124,8 +124,7 @@ class MainMenuView(View):
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    # Linha 3 (row 2): 2 Botões de tamanho igual grande
-    @button(label="📦 Meus Pedidos", style=discord.ButtonStyle.secondary, custom_id="btn_main_orders", row=2)
+    @button(label="📦 Pedidos  ", style=discord.ButtonStyle.secondary, custom_id="btn_main_orders", row=1)
     async def btn_orders(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await check_registration_or_prompt(interaction):
             return
@@ -134,7 +133,7 @@ class MainMenuView(View):
         embed = view.get_embed()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
-    @button(label="🎫 Suporte Técnico", style=discord.ButtonStyle.danger, custom_id="btn_main_support", row=2)
+    @button(label="🎫 Suporte  ", style=discord.ButtonStyle.danger, custom_id="btn_main_support", row=1)
     async def btn_support(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await check_registration_or_prompt(interaction):
             return
