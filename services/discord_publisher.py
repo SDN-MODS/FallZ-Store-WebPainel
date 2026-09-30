@@ -5,7 +5,7 @@ from database.db import SessionLocal
 from database.models import StoreSettings, BotEmbedTemplate
 from services.audit_service import log_action
 
-# Caractere invisível Hangul Filler para fácil ajuste manual de largura dos botões
+# Caractere invisível Hangul Filler para alinhamento e centralização dos botões
 ESPACO_INVISIVEL = "\u3164"
 
 def publish_store_panel_to_discord():
@@ -71,17 +71,17 @@ def publish_store_panel_to_discord():
             {
                 "type": 1,
                 "components": [
-                    {"type": 2, "style": 1, "label": f"{ESPACO_INVISIVEL * 4}🛒 Loja{ESPACO_INVISIVEL * 4}", "custom_id": "btn_main_store"},
-                    {"type": 2, "style": 1, "label": f"{ESPACO_INVISIVEL * 3}🛍️ Carrinho{ESPACO_INVISIVEL * 3}", "custom_id": "btn_main_cart"},
-                    {"type": 2, "style": 3, "label": "🪙 Comprar Coins", "custom_id": "btn_main_buy_coins"}
+                    {"type": 2, "style": 1, "label": f"{ESPACO_INVISIVEL * 5}🛒 Loja{ESPACO_INVISIVEL * 5}", "custom_id": "btn_main_store"},
+                    {"type": 2, "style": 1, "label": f"{ESPACO_INVISIVEL * 4}🛍️ Carrinho{ESPACO_INVISIVEL * 4}", "custom_id": "btn_main_cart"},
+                    {"type": 2, "style": 3, "label": f"{ESPACO_INVISIVEL * 1}🪙 Comprar Coins{ESPACO_INVISIVEL * 1}", "custom_id": "btn_main_buy_coins"}
                 ]
             },
             {
                 "type": 1,
                 "components": [
-                    {"type": 2, "style": 2, "label": f"{ESPACO_INVISIVEL * 2}💰 Meu Saldo{ESPACO_INVISIVEL * 2}", "custom_id": "btn_main_balance"},
-                    {"type": 2, "style": 2, "label": f"{ESPACO_INVISIVEL * 4}📦 Pedidos{ESPACO_INVISIVEL * 3}", "custom_id": "btn_main_orders"},
-                    {"type": 2, "style": 4, "label": f"{ESPACO_INVISIVEL * 4}🎫 Suporte{ESPACO_INVISIVEL * 3}", "custom_id": "btn_main_support"}
+                    {"type": 2, "style": 2, "label": f"{ESPACO_INVISIVEL * 3}💰 Meu Saldo{ESPACO_INVISIVEL * 3}", "custom_id": "btn_main_balance"},
+                    {"type": 2, "style": 2, "label": f"{ESPACO_INVISIVEL * 5}📦 Pedidos{ESPACO_INVISIVEL * 4}", "custom_id": "btn_main_orders"},
+                    {"type": 2, "style": 4, "label": f"{ESPACO_INVISIVEL * 5}🎫 Suporte{ESPACO_INVISIVEL * 4}", "custom_id": "btn_main_support"}
                 ]
             }
         ]
