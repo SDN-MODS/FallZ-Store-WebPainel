@@ -8,6 +8,9 @@ from bot.views.store_view import CategorySelectView
 from bot.views.order_view import MyOrdersView
 from bot.views.ticket_view import TicketCategoryView
 
+# Caractere invisivel Hangul Filler para alinhamento e centralizacao dos botoes
+ESPACO_INVISIVEL = "\u3164"
+
 class RegistrationModal(Modal, title="📝 CADASTRO DE JOGADOR DAYZ"):
     full_name_input = TextInput(
         label="Nome Completo",
@@ -75,9 +78,9 @@ class MainMenuView(View):
     def __init__(self):
         super().__init__(timeout=None) # Persistent view
 
-    # 2 Linhas x 3 Colunas com alinhamento vertical e largura identica (15 chars)
+    # 2 Linhas x 3 Colunas com alinhamento e f-strings dinâmicas para fácil ajuste manual
     # Linha 1 (row 0): 3 Botões (Loja, Carrinho, Comprar Coins)
-    @button(label="ㅤㅤㅤㅤ🛒 Lojaㅤㅤㅤㅤ", style=discord.ButtonStyle.primary, custom_id="btn_main_store", row=0)
+    @button(label=f"{ESPACO_INVISIVEL * 4}🛒 Loja{ESPACO_INVISIVEL * 4}", style=discord.ButtonStyle.primary, custom_id="btn_main_store", row=0)
     async def btn_store(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await check_registration_or_prompt(interaction):
             return
@@ -85,7 +88,7 @@ class MainMenuView(View):
         embed = view.get_embed()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
-    @button(label="ㅤㅤㅤ🛍️ Carrinhoㅤㅤㅤ", style=discord.ButtonStyle.primary, custom_id="btn_main_cart", row=0)
+    @button(label=f"{ESPACO_INVISIVEL * 3}🛍️ Carrinho{ESPACO_INVISIVEL * 3}", style=discord.ButtonStyle.primary, custom_id="btn_main_cart", row=0)
     async def btn_cart(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await check_registration_or_prompt(interaction):
             return
@@ -104,7 +107,7 @@ class MainMenuView(View):
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     # Linha 2 (row 1): 3 Botões (Meu Saldo, Pedidos, Suporte)
-    @button(label="ㅤㅤ💰 Meu Saldoㅤㅤ", style=discord.ButtonStyle.secondary, custom_id="btn_main_balance", row=1)
+    @button(label=f"{ESPACO_INVISIVEL * 2}💰 Meu Saldo{ESPACO_INVISIVEL * 2}", style=discord.ButtonStyle.secondary, custom_id="btn_main_balance", row=1)
     async def btn_balance(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await check_registration_or_prompt(interaction):
             return
@@ -125,7 +128,7 @@ class MainMenuView(View):
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    @button(label="ㅤㅤㅤㅤ📦 Pedidosㅤㅤㅤ", style=discord.ButtonStyle.secondary, custom_id="btn_main_orders", row=1)
+    @button(label=f"{ESPACO_INVISIVEL * 4}📦 Pedidos{ESPACO_INVISIVEL * 3}", style=discord.ButtonStyle.secondary, custom_id="btn_main_orders", row=1)
     async def btn_orders(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await check_registration_or_prompt(interaction):
             return
@@ -134,7 +137,7 @@ class MainMenuView(View):
         embed = view.get_embed()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
-    @button(label="ㅤㅤㅤㅤ🎫 Suporteㅤㅤㅤ", style=discord.ButtonStyle.danger, custom_id="btn_main_support", row=1)
+    @button(label=f"{ESPACO_INVISIVEL * 4}🎫 Suporte{ESPACO_INVISIVEL * 3}", style=discord.ButtonStyle.danger, custom_id="btn_main_support", row=1)
     async def btn_support(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await check_registration_or_prompt(interaction):
             return
