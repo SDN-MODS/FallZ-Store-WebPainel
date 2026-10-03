@@ -3,6 +3,8 @@ from discord.ui import View, Select, Modal, TextInput, button
 from services.ticket_service import create_ticket, get_user_tickets
 from bot.utils import build_embed_from_db
 
+ESPACO_INVISIVEL = "\u3164"
+
 class TicketModal(Modal, title="🎫 ABRIR TICKET DE SUPORTE"):
     subject_input = TextInput(
         label="Assunto",
@@ -66,7 +68,8 @@ class TicketCategoryView(View):
     def get_embed(self):
         return build_embed_from_db('ticket_support')
 
-    @button(label="◀️ Voltar ao Menu Principal", style=discord.ButtonStyle.secondary, row=1)
+    # 1 Botão centralizado (row=1)
+    @button(label=f"{ESPACO_INVISIVEL * 4}◀️ Voltar ao Menu Principal{ESPACO_INVISIVEL * 4}", style=discord.ButtonStyle.secondary, row=1)
     async def btn_back(self, interaction: discord.Interaction, button: discord.ui.Button):
         from bot.views.main_menu import MainMenuView, build_main_embed
         view = MainMenuView()

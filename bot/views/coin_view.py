@@ -4,6 +4,8 @@ from services.coin_service import get_active_coin_packages, process_coin_purchas
 from services.user_service import get_user_balance
 from bot.utils import build_embed_from_db
 
+ESPACO_INVISIVEL = "\u3164"
+
 class CoinPackageSelect(Select):
     def __init__(self, packages):
         options = []
@@ -42,12 +44,13 @@ class CoinStoreView(View):
     def get_embed(self):
         return build_embed_from_db('coin_store')
 
-    @button(label="🎟️ Resgatar Cupom de Bônus de Coins", style=discord.ButtonStyle.success, row=1)
+    # 2 botões na mesma linha (row=1) com tamanho e alinhamento ajustados
+    @button(label=f"{ESPACO_INVISIVEL * 1}🎟️ Resgatar Cupom de Bônus de Coins{ESPACO_INVISIVEL * 1}", style=discord.ButtonStyle.success, row=1)
     async def btn_apply_coin_coupon(self, interaction: discord.Interaction, button: discord.ui.Button):
         from bot.views.coupon_view import CouponModal
         await interaction.response.send_modal(CouponModal())
 
-    @button(label="◀️ Voltar ao Menu Principal", style=discord.ButtonStyle.secondary, row=1)
+    @button(label=f"{ESPACO_INVISIVEL * 4}◀️ Voltar ao Menu Principal.{ESPACO_INVISIVEL * 4}", style=discord.ButtonStyle.secondary, row=1)
     async def btn_back(self, interaction: discord.Interaction, button: discord.ui.Button):
         from bot.views.main_menu import MainMenuView, build_main_embed
         view = MainMenuView()

@@ -3,6 +3,8 @@ from discord.ui import View, button
 from services.cart_service import get_cart_items, remove_from_cart, clear_cart, checkout_cart
 from bot.utils import build_embed_from_db
 
+ESPACO_INVISIVEL = "\u3164"
+
 class CartView(View):
     def __init__(self, user_id: str):
         super().__init__(timeout=180)
@@ -38,7 +40,8 @@ class CartView(View):
 
         return embed
 
-    @button(label="✅ Finalizar Compra", style=discord.ButtonStyle.success, row=0)
+    # 5 Botões: 3 em cima (row=0) e 2 embaixo (row=1)
+    @button(label=f"{ESPACO_INVISIVEL * 4}✅ Finalizar Compra{ESPACO_INVISIVEL * 4}", style=discord.ButtonStyle.success, row=0)
     async def btn_checkout(self, interaction: discord.Interaction, button: discord.ui.Button):
         user_id = str(interaction.user.id)
         ok, msg = checkout_cart(user_id)
@@ -49,26 +52,26 @@ class CartView(View):
         else:
             await interaction.response.send_message(f"❌ {msg}", ephemeral=True)
 
-    @button(label="🛍️ Continuar Comprando", style=discord.ButtonStyle.primary, row=0)
+    @button(label=f"{ESPACO_INVISIVEL * 2}🛍️ Continuar Comprando{ESPACO_INVISIVEL * 2}", style=discord.ButtonStyle.primary, row=0)
     async def btn_continue_shopping(self, interaction: discord.Interaction, button: discord.ui.Button):
         from bot.views.store_view import CategorySelectView
         view = CategorySelectView()
         embed = view.get_embed()
         await interaction.response.edit_message(embed=embed, view=view)
 
-    @button(label="🎟️ Aplicar Cupom de Desconto", style=discord.ButtonStyle.primary, row=1)
+    @button(label=f"{ESPACO_INVISIVEL * 1}🎟️ Aplicar Cupom{ESPACO_INVISIVEL * 1}", style=discord.ButtonStyle.primary, row=0)
     async def btn_apply_coupon(self, interaction: discord.Interaction, button: discord.ui.Button):
         from bot.views.coupon_view import CouponModal
         await interaction.response.send_modal(CouponModal())
 
-    @button(label="🧹 Limpar Carrinho", style=discord.ButtonStyle.secondary, row=1)
+    @button(label=f"{ESPACO_INVISIVEL * 4}🧹 Limpar Carrinho.{ESPACO_INVISIVEL * 4}", style=discord.ButtonStyle.secondary, row=1)
     async def btn_clear(self, interaction: discord.Interaction, button: discord.ui.Button):
         user_id = str(interaction.user.id)
         clear_cart(user_id)
         embed = self.get_embed()
         await interaction.response.edit_message(embed=embed, view=self)
 
-    @button(label="◀️ Voltar ao Menu Principal", style=discord.ButtonStyle.secondary, row=1)
+    @button(label=f"{ESPACO_INVISIVEL * 2}◀️ Voltar ao Menu Principal{ESPACO_INVISIVEL * 2}", style=discord.ButtonStyle.secondary, row=1)
     async def btn_back_main(self, interaction: discord.Interaction, button: discord.ui.Button):
         from bot.views.main_menu import MainMenuView, build_main_embed
         view = MainMenuView()

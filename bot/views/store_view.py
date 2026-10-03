@@ -5,6 +5,8 @@ from services.user_service import get_user_balance
 from services.order_service import create_order
 from bot.utils import build_embed_from_db
 
+ESPACO_INVISIVEL = "\u3164"
+
 class CategorySelect(Select):
     def __init__(self, categories):
         options = [
@@ -34,14 +36,15 @@ class CategorySelectView(View):
     def get_embed(self):
         return build_embed_from_db('category_list')
 
-    @button(label="🛍️ Ver Carrinho", style=discord.ButtonStyle.primary, row=1)
+    # 2 Botões alinhados na mesma linha (row=1)
+    @button(label=f"{ESPACO_INVISIVEL * 3}🛍️ Ver Carrinho{ESPACO_INVISIVEL * 3}", style=discord.ButtonStyle.primary, row=1)
     async def btn_view_cart(self, interaction: discord.Interaction, button: discord.ui.Button):
         from bot.views.cart_view import CartView
         view = CartView(str(interaction.user.id))
         embed = view.get_embed()
         await interaction.response.edit_message(embed=embed, view=view)
 
-    @button(label="◀️ Voltar", style=discord.ButtonStyle.secondary, row=1)
+    @button(label=f"{ESPACO_INVISIVEL * 5}◀️ Voltar.{ESPACO_INVISIVEL * 5}", style=discord.ButtonStyle.secondary, row=1)
     async def btn_back(self, interaction: discord.Interaction, button: discord.ui.Button):
         from bot.views.main_menu import MainMenuView, build_main_embed
         view = MainMenuView()
@@ -81,7 +84,8 @@ class ProductSelectView(View):
         embed.title = "🛒 SELEÇÃO DE PRODUTO / KIT"
         return embed
 
-    @button(label="◀️ Voltar para Categorias", style=discord.ButtonStyle.secondary, row=1)
+    # 1 Botão centralizado na linha (row=1)
+    @button(label=f"{ESPACO_INVISIVEL * 4}◀️ Voltar para Categorias{ESPACO_INVISIVEL * 4}", style=discord.ButtonStyle.secondary, row=1)
     async def btn_back(self, interaction: discord.Interaction, button: discord.ui.Button):
         view = CategorySelectView()
         embed = view.get_embed()
@@ -136,7 +140,8 @@ class ProductDetailView(View):
 
         return embed
 
-    @button(label="🛒 Adicionar ao Carrinho", style=discord.ButtonStyle.primary, row=0)
+    # 3 Botões alinhados na mesma linha (row=0)
+    @button(label=f"{ESPACO_INVISIVEL * 2}🛒 Adicionar ao Carrinho{ESPACO_INVISIVEL * 2}", style=discord.ButtonStyle.primary, row=0)
     async def btn_add_cart(self, interaction: discord.Interaction, button: discord.ui.Button):
         from services.cart_service import add_to_cart
         user_id = str(interaction.user.id)
@@ -150,7 +155,7 @@ class ProductDetailView(View):
         else:
             await interaction.response.send_message(f"❌ {msg}", ephemeral=True)
 
-    @button(label="⚡ Comprar Agora", style=discord.ButtonStyle.success, row=0)
+    @button(label=f"{ESPACO_INVISIVEL * 4}⚡ Comprar Agora.{ESPACO_INVISIVEL * 4}", style=discord.ButtonStyle.success, row=0)
     async def btn_confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
         user_id = str(interaction.user.id)
         user_coins = get_user_balance(user_id)
@@ -187,7 +192,7 @@ class ProductDetailView(View):
         else:
             await interaction.response.send_message(f"❌ Falha no pedido: {msg}", ephemeral=True)
 
-    @button(label="◀️ Voltar", style=discord.ButtonStyle.secondary, row=1)
+    @button(label=f"{ESPACO_INVISIVEL * 8}◀️ Voltar.{ESPACO_INVISIVEL * 8}", style=discord.ButtonStyle.secondary, row=0)
     async def btn_back(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.product:
             view = ProductSelectView(self.product.category_id)

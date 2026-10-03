@@ -3,6 +3,8 @@ from discord.ui import View, button
 from services.order_service import get_user_orders
 from bot.utils import build_embed_from_db
 
+ESPACO_INVISIVEL = "\u3164"
+
 class MyOrdersView(View):
     def __init__(self, user_id: str):
         super().__init__(timeout=180)
@@ -35,7 +37,8 @@ class MyOrdersView(View):
 
         return embed
 
-    @button(label="◀️ Voltar ao Menu Principal", style=discord.ButtonStyle.secondary, row=1)
+    # 1 Botão centralizado (row=1)
+    @button(label=f"{ESPACO_INVISIVEL * 4}◀️ Voltar ao Menu Principal{ESPACO_INVISIVEL * 4}", style=discord.ButtonStyle.secondary, row=1)
     async def btn_back(self, interaction: discord.Interaction, button: discord.ui.Button):
         from bot.views.main_menu import MainMenuView, build_main_embed
         view = MainMenuView()
