@@ -80,7 +80,7 @@ class MainMenuView(View):
 
     # 2 Linhas x 3 Colunas com alinhamento e f-strings configuráveis para TODOS os 6 botões
     # Linha 1 (row 0): 3 Botões (Loja, Carrinho, Comprar Coins)
-    @button(label=f"{ESPACO_INVISIVEL * 5}🛒 Loja{ESPACO_INVISIVEL * 5}", style=discord.ButtonStyle.primary, custom_id="btn_main_store", row=0)
+    @button(label=f"{ESPACO_INVISIVEL * 3}🛒 Loja{ESPACO_INVISIVEL * 3}", style=discord.ButtonStyle.primary, custom_id="btn_main_store", row=0)
     async def btn_store(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await check_registration_or_prompt(interaction):
             return
@@ -88,7 +88,7 @@ class MainMenuView(View):
         embed = view.get_embed()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
-    @button(label=f"{ESPACO_INVISIVEL * 4}🛍️ Carrinho{ESPACO_INVISIVEL * 4}", style=discord.ButtonStyle.primary, custom_id="btn_main_cart", row=0)
+    @button(label=f"{ESPACO_INVISIVEL * 3}🛍️ Carrinho{ESPACO_INVISIVEL * 3}", style=discord.ButtonStyle.primary, custom_id="btn_main_cart", row=0)
     async def btn_cart(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await check_registration_or_prompt(interaction):
             return
@@ -107,7 +107,7 @@ class MainMenuView(View):
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     # Linha 2 (row 1): 3 Botões (Meu Saldo, Pedidos, Suporte)
-    @button(label=f"{ESPACO_INVISIVEL * 3}💰 Meu Saldo{ESPACO_INVISIVEL * 3}", style=discord.ButtonStyle.secondary, custom_id="btn_main_balance", row=1)
+    @button(label=f"{ESPACO_INVISIVEL * 1}💰 Meu  Saldo.{ESPACO_INVISIVEL * 2}", style=discord.ButtonStyle.secondary, custom_id="btn_main_balance", row=1)
     async def btn_balance(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await check_registration_or_prompt(interaction):
             return
@@ -128,7 +128,7 @@ class MainMenuView(View):
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
-    @button(label=f"{ESPACO_INVISIVEL * 5}📦 Pedidos{ESPACO_INVISIVEL * 4}", style=discord.ButtonStyle.secondary, custom_id="btn_main_orders", row=1)
+    @button(label=f"{ESPACO_INVISIVEL * 3}📦 Pedidos.{ESPACO_INVISIVEL * 3}", style=discord.ButtonStyle.secondary, custom_id="btn_main_orders", row=1)
     async def btn_orders(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await check_registration_or_prompt(interaction):
             return
@@ -137,7 +137,7 @@ class MainMenuView(View):
         embed = view.get_embed()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
-    @button(label=f"{ESPACO_INVISIVEL * 5}🎫 Suporte{ESPACO_INVISIVEL * 4}", style=discord.ButtonStyle.danger, custom_id="btn_main_support", row=1)
+    @button(label=f"{ESPACO_INVISIVEL * 2}🎫 Suporte{ESPACO_INVISIVEL * 3}", style=discord.ButtonStyle.danger, custom_id="btn_main_support", row=1)
     async def btn_support(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await check_registration_or_prompt(interaction):
             return
