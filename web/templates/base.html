@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Painel Administrativo{% endblock %} — Loja DayZ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-900 text-gray-100 flex min-h-screen">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col justify-between">
+        <div>
+            <div class="p-5 border-b border-gray-700 flex items-center space-x-3">
+                <div class="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center text-gray-900 font-bold text-xl">
+                    ⚡
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-white">DayZ Admin</h1>
+                    <p class="text-xs text-amber-400 font-semibold">Painel de Controle</p>
+                </div>
+            </div>
+
+            <nav class="p-4 space-y-1 text-sm font-medium">
+                <a href="/" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-700 transition {% if active_page == 'dashboard' %}bg-amber-500 text-gray-900 font-bold{% else %}text-gray-300{% endif %}">
+                    <i class="fa-solid fa-chart-line w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/coins" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-700 transition {% if active_page == 'coins' %}bg-amber-500 text-gray-900 font-bold{% else %}text-gray-300{% endif %}">
+                    <i class="fa-solid fa-coins w-5 text-amber-400"></i>
+                    <span>Gerenciar Coins</span>
+                </a>
+                <a href="/products" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-700 transition {% if active_page == 'products' %}bg-amber-500 text-gray-900 font-bold{% else %}text-gray-300{% endif %}">
+                    <i class="fa-solid fa-boxes-stacked w-5"></i>
+                    <span>Produtos & Kits</span>
+                </a>
+                <a href="/embeds" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-700 transition {% if active_page == 'embeds' %}bg-amber-500 text-gray-900 font-bold{% else %}text-gray-300{% endif %}">
+                    <i class="fa-solid fa-paintbrush w-5 text-purple-400"></i>
+                    <span>🎨 Embeds & Bot</span>
+                </a>
+                <a href="/orders" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-700 transition {% if active_page == 'orders' %}bg-amber-500 text-gray-900 font-bold{% else %}text-gray-300{% endif %}">
+                    <i class="fa-solid fa-cart-shopping w-5"></i>
+                    <span>Pedidos</span>
+                </a>
+                <a href="/users" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-700 transition {% if active_page == 'users' %}bg-amber-500 text-gray-900 font-bold{% else %}text-gray-300{% endif %}">
+                    <i class="fa-solid fa-users w-5"></i>
+                    <span>Jogadores / Clientes</span>
+                </a>
+                <a href="/coupons" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-700 transition {% if active_page == 'coupons' %}bg-amber-500 text-gray-900 font-bold{% else %}text-gray-300{% endif %}">
+                    <i class="fa-solid fa-ticket w-5"></i>
+                    <span>Cupons Promocionais</span>
+                </a>
+                <a href="/reports" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-700 transition {% if active_page == 'reports' %}bg-amber-500 text-gray-900 font-bold{% else %}text-gray-300{% endif %}">
+                    <i class="fa-solid fa-file-invoice-dollar w-5"></i>
+                    <span>Relatórios</span>
+                </a>
+                <a href="/settings" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-700 transition {% if active_page == 'settings' %}bg-amber-500 text-gray-900 font-bold{% else %}text-gray-300{% endif %}">
+                    <i class="fa-solid fa-gear w-5"></i>
+                    <span>Configurações & Bot</span>
+                </a>
+                <a href="/logs" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-gray-700 transition {% if active_page == 'logs' %}bg-amber-500 text-gray-900 font-bold{% else %}text-gray-300{% endif %}">
+                    <i class="fa-solid fa-list-check w-5"></i>
+                    <span>Logs de Auditoria</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="p-4 border-t border-gray-700 text-xs text-gray-400 text-center">
+            DayZ Store Admin v1.0.0
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 p-8 overflow-y-auto">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="mb-6 space-y-2">
+            {% for category, message in messages %}
+              <div class="p-4 rounded-lg text-sm font-medium border {% if category == 'success' %}bg-green-900/50 border-green-500 text-green-200{% else %}bg-red-900/50 border-red-500 text-red-200{% endif %}">
+                {{ message }}
+              </div>
+            {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+</body>
+</html>

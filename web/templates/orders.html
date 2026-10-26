@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciamento de Pedidos{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex justify-between items-center">
+    <div>
+        <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-cart-shopping text-amber-400"></i> Gerenciamento de Pedidos
+        </h1>
+        <p class="text-gray-400 text-sm">Acompanhe todos os pedidos realizados no bot e altere seus status de entrega.</p>
+    </div>
+</div>
+
+<div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-gray-300">
+            <thead class="text-xs uppercase bg-gray-700/50 text-gray-400">
+                <tr>
+                    <th class="p-3"># Pedido</th>
+                    <th class="p-3">Jogador</th>
+                    <th class="p-3">Itens do Pedido</th>
+                    <th class="p-3">Total Coins</th>
+                    <th class="p-3">Data</th>
+                    <th class="p-3">Status Atual</th>
+                    <th class="p-3">Alterar Status / Ação</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700">
+                {% for order in orders %}
+                <tr>
+                    <td class="p-3 font-mono font-bold text-white">#{{ order.order_number }}</td>
+                    <td class="p-3 font-semibold">{{ order.user.username }}</td>
+                    <td class="p-3 text-xs">
+                        {% for item in order.items %}
+                            <div>• {{ item.quantity }}x {{ item.product.name if item.product else 'Item Excluído' }}</div>
+                        {% endfor %}
+                    </td>
+                    <td class="p-3 font-bold text-amber-400">{{ order.total_coins }} C</td>
+                    <td class="p-3 text-xs text-gray-400">{{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td class="p-3">
+                        <span class="px-2.5 py-1 rounded text-xs font-bold
+                            {% if order.status == 'Aguardando processamento' %}bg-yellow-500/20 text-yellow-300 border border-yellow-500/30
+                            {% elif order.status == 'Processando' %}bg-blue-500/20 text-blue-300 border border-blue-500/30
+                            {% elif order.status == 'Entregue' %}bg-green-500/20 text-green-300 border border-green-500/30
+                            {% else %}bg-red-500/20 text-red-300 border border-red-500/30{% endif %}">
+                            {{ order.status }}
+                        </span>
+                    </td>
+                    <td class="p-3">
+                        <form action="/orders/update-status" method="POST" class="flex items-center gap-2">
+                            <input type="hidden" name="order_id" value="{{ order.id }}">
+                            <select name="status" class="bg-gray-900 border border-gray-700 rounded text-xs text-white p-1.5 focus:outline-none">
+                                <option value="Aguardando processamento" {% if order.status == 'Aguardando processamento' %}selected{% endif %}>🟡 Aguardando</option>
+                                <option value="Processando" {% if order.status == 'Processando' %}selected{% endif %}>🔵 Processando</option>
+                                <option value="Entregue" {% if order.status == 'Entregue' %}selected{% endif %}>🟢 Entregue</option>
+                                <option value="Cancelado" {% if order.status == 'Cancelado' %}selected{% endif %}>🔴 Cancelado</option>
+                            </select>
+
+                            <label class="inline-flex items-center text-xs text-gray-400 cursor-pointer">
+                                <input type="checkbox" name="refund" value="true" class="rounded border-gray-700 text-amber-500 focus:ring-0">
+                                <span class="ml-1">Reembolsar Coins?</span>
+                            </label>
+
+                            <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold px-2 py-1 rounded text-xs transition">
+                                Salvar
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="p-4 text-center text-gray-500">Nenhum pedido encontrado.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
