@@ -124,10 +124,11 @@
 
         <form action="/coins/adjust-balance" method="POST" class="space-y-4">
             <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-1">Selecione o Jogador</label>
-                <select name="user_id" required class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                <label class="block text-xs font-semibold text-gray-400 mb-1">Selecione o Jogador (Busque por Nome ou SteamID)</label>
+                <select id="user-select" name="user_id" required class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                    <option value="">Buscar Jogador...</option>
                     {% for user in users %}
-                    <option value="{{ user.id }}">{{ user.username }} (Saldo: {{ user.coins }} C)</option>
+                    <option value="{{ user.id }}">{{ user.username }} {{ '(%s)' % user.nick if user.nick else '' }} {{ '[Steam: %s]' % user.steam_id if user.steam_id else '' }} (Saldo: {{ user.coins }} C)</option>
                     {% endfor %}
                 </select>
             </div>
@@ -145,4 +146,17 @@
         </form>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        new TomSelect("#user-select", {
+            create: false,
+            sortField: {
+                field: "text",
+                direction: "asc"
+            },
+            placeholder: "Digite o nome ou SteamID do jogador..."
+        });
+    });
+</script>
 {% endblock %}
