@@ -33,7 +33,7 @@ def test_full_economy_flow():
     assert len(packages) > 0
     pkg_1000 = [p for p in packages if "1.000" in p.title or p.coins == 1000][0]
 
-    ok, msg = process_coin_purchase(discord_id, pkg_1000.id)
+    ok, msg, tid = process_coin_purchase(discord_id, pkg_1000.id)
     assert ok is True
     balance = get_user_balance(discord_id)
     assert balance == 1100

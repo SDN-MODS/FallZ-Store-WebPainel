@@ -94,7 +94,7 @@ def process_coin_purchase(user_id: str, package_id: str):
         user = session.query(User).filter_by(id=user_id).first()
 
         if not pkg or not user:
-            return False, "Pacote ou usuário não encontrado."
+            return False, "Pacote ou usuário não encontrado.", None
 
         total_coins = pkg.coins + pkg.bonus_coins
         user.coins += total_coins
@@ -116,10 +116,10 @@ def process_coin_purchase(user_id: str, package_id: str):
             f"Usuário {user.username} ({user.id}) comprou pacote {pkg.title} por R${pkg.price_brl:.2f} e recebeu {total_coins} Coins",
             target_id=user.id
         )
-        return True, f"Pagamento Aprovado! {total_coins} Coins adicionadas ao seu saldo."
+        return True, f"Pagamento Aprovado! {total_coins} Coins adicionadas ao seu saldo.", transaction.id
     except Exception as e:
         session.rollback()
-        return False, f"Erro ao processar compra: {str(e)}"
+        return False, f"Erro ao processar compra: {str(e)}", None
     finally:
         session.close()
 
