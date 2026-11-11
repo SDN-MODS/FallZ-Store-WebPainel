@@ -1,10 +1,20 @@
 import discord
 from discord.ui import View, Select, button
-from services.coin_service import get_active_coin_packages, process_coin_purchase
+from services.coin_service import get_active_coin_packages, process_coin_purchase, get_coin_package_by_id
 from services.user_service import get_user_balance
 from bot.utils import build_embed_from_db
 
 ESPACO_INVISIVEL = "\u3164"
+
+class PromotionalUploadView(View):
+    def __init__(self):
+        super().__init__(timeout=180)
+
+    @button(label=f"{ESPACO_INVISIVEL * 2}📤 Enviar Arquivo Promocional{ESPACO_INVISIVEL * 2}", style=discord.ButtonStyle.primary)
+    async def btn_upload_file(self, interaction: discord.Interaction, button: discord.ui.Button):
+        from bot.views.ticket_view import TicketModal
+        # Using the existing ticket system as the safest way to accept files/proofs
+        await interaction.response.send_modal(TicketModal(category="Entrega Promocional"))
 
 class CoinPackageSelect(Select):
     def __init__(self, packages):
@@ -25,6 +35,7 @@ class CoinPackageSelect(Select):
 
         ok, msg = process_coin_purchase(user_id, pkg_id)
         balance = get_user_balance(user_id)
+        pkg = get_coin_package_by_id(pkg_id)
 
         embed = discord.Embed(
             title="✅ COMPRA DE COINS CONFIRMADA!" if ok else "❌ ERRO NA COMPRA",
@@ -32,7 +43,14 @@ class CoinPackageSelect(Select):
             color=discord.Color.green() if ok else discord.Color.red()
         )
         embed.add_field(name="🪙 Saldo Atualizado", value=f"**{balance} Coins**")
-        await interaction.response.edit_message(embed=embed, view=None)
+
+        view = None
+        if ok and pkg and pkg.is_promotional:
+            embed.description += f"\n\n🎁 **PACOTE PROMOCIONAL ATIVADO**\n{pkg.promotional_instructions}"
+            embed.color = discord.Color.gold()
+            view = PromotionalUploadView()
+
+        await interaction.response.edit_message(embed=embed, view=view)
 
 class CoinStoreView(View):
     def __init__(self):

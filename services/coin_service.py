@@ -24,7 +24,7 @@ def get_coin_package_by_id(package_id: str):
     finally:
         session.close()
 
-def create_coin_package(title: str, coins: int, bonus_coins: int, price_brl: float, description: str = "", image_url: str = ""):
+def create_coin_package(title: str, coins: int, bonus_coins: int, price_brl: float, description: str = "", image_url: str = "", is_promotional: bool = False, promotional_instructions: str = ""):
     session = SessionLocal()
     try:
         pkg = CoinPackage(
@@ -35,7 +35,9 @@ def create_coin_package(title: str, coins: int, bonus_coins: int, price_brl: flo
             price_brl=price_brl,
             image_url=image_url,
             description=description,
-            active=True
+            active=True,
+            is_promotional=is_promotional,
+            promotional_instructions=promotional_instructions
         )
         session.add(pkg)
         session.commit()
@@ -45,7 +47,7 @@ def create_coin_package(title: str, coins: int, bonus_coins: int, price_brl: flo
     finally:
         session.close()
 
-def update_coin_package(package_id: str, title: str, coins: int, bonus_coins: int, price_brl: float, active: bool, description: str = "", image_url: str = ""):
+def update_coin_package(package_id: str, title: str, coins: int, bonus_coins: int, price_brl: float, active: bool, description: str = "", image_url: str = "", is_promotional: bool = False, promotional_instructions: str = ""):
     session = SessionLocal()
     try:
         pkg = session.query(CoinPackage).filter_by(id=package_id).first()
@@ -57,6 +59,8 @@ def update_coin_package(package_id: str, title: str, coins: int, bonus_coins: in
             pkg.active = active
             pkg.description = description
             pkg.image_url = image_url
+            pkg.is_promotional = is_promotional
+            pkg.promotional_instructions = promotional_instructions
             session.commit()
             log_action("PACKAGE_UPDATED", f"Pacote '{title}' ({package_id}) editado com sucesso")
             return pkg

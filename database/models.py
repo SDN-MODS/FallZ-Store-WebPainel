@@ -43,6 +43,8 @@ class CoinPackage(Base):
     image_url = Column(String, nullable=True)
     description = Column(Text, nullable=True)
     active = Column(Boolean, default=True)
+    is_promotional = Column(Boolean, default=False)
+    promotional_instructions = Column(Text, nullable=True)
     created_at = Column(DateTime, default=get_now_brt)
     updated_at = Column(DateTime, default=get_now_brt, onupdate=get_now_brt)
 

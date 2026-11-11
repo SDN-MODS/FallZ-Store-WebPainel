@@ -134,6 +134,10 @@ def migrate_db():
         pkg_columns = [row[1] for row in pkg_result]
         if 'image_url' not in pkg_columns:
             conn.execute(text("ALTER TABLE coin_packages ADD COLUMN image_url VARCHAR"))
+        if 'is_promotional' not in pkg_columns:
+            conn.execute(text("ALTER TABLE coin_packages ADD COLUMN is_promotional BOOLEAN DEFAULT 0"))
+        if 'promotional_instructions' not in pkg_columns:
+            conn.execute(text("ALTER TABLE coin_packages ADD COLUMN promotional_instructions TEXT"))
 
         user_result = conn.execute(text("PRAGMA table_info(users)")).fetchall()
         user_columns = [row[1] for row in user_result]

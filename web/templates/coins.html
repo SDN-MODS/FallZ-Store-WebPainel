@@ -95,13 +95,27 @@
                     <label class="block text-xs font-semibold text-gray-400 mb-1">Descrição</label>
                     <input type="text" name="description" value="{{ edit_pkg.description if edit_pkg else '' }}" placeholder="Descrição promocional do pacote" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
                 </div>
+
+                <div class="md:col-span-2">
+                    <div class="flex items-center gap-2 mb-2">
+                        <input type="checkbox" name="is_promotional" value="true" id="is_promotional" {% if edit_pkg and edit_pkg.is_promotional %}checked{% endif %} class="rounded border-gray-700 text-amber-500 focus:ring-0">
+                        <label for="is_promotional" class="text-xs text-amber-400 font-bold">Pacote Promocional/Kit Personalizado</label>
+                    </div>
+
+                    <div id="promo-fields" class="{% if not (edit_pkg and edit_pkg.is_promotional) %}hidden{% endif %} bg-gray-900/50 p-4 rounded-lg border border-amber-500/20 mt-2">
+                        <p class="text-xs text-gray-400 mb-2">Se ativado, ao jogador comprar o pacote ele ganha a opção de enviar um arquivo, além das seguintes instruções (ideal para itens/kits que não estão na loja padrão):</p>
+                        <label class="block text-xs font-semibold text-gray-400 mb-1">Instruções para Resgate do Prêmio Promocional</label>
+                        <textarea name="promotional_instructions" placeholder="Ex: Crie um ticket com o arquivo de comprovante e a localização da sua base para entregarmos o kit de construção." class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-amber-500 h-20">{{ edit_pkg.promotional_instructions if edit_pkg else '' }}</textarea>
+                    </div>
+                </div>
+
                 {% if edit_pkg %}
-                <div class="md:col-span-2 flex items-center gap-2">
+                <div class="md:col-span-2 flex items-center gap-2 mt-2">
                     <input type="checkbox" name="active" value="true" id="active_chk" {% if edit_pkg.active %}checked{% endif %} class="rounded border-gray-700 text-amber-500 focus:ring-0">
                     <label for="active_chk" class="text-xs text-gray-300 font-medium">Pacote Ativo na Loja</label>
                 </div>
                 {% endif %}
-                <div class="md:col-span-2 flex gap-3">
+                <div class="md:col-span-2 flex gap-3 mt-4">
                     <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold py-2.5 rounded-lg transition">
                         {% if edit_pkg %}Salvar Alterações do Pacote{% else %}Criar Pacote de Coins{% endif %}
                     </button>
@@ -149,6 +163,19 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        const promoCheckbox = document.getElementById('is_promotional');
+        const promoFields = document.getElementById('promo-fields');
+
+        if (promoCheckbox && promoFields) {
+            promoCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    promoFields.classList.remove('hidden');
+                } else {
+                    promoFields.classList.add('hidden');
+                }
+            });
+        }
+
         new TomSelect("#user-select", {
             create: false,
             sortField: {

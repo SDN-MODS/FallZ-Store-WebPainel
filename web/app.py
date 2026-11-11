@@ -83,8 +83,10 @@ def handle_create_package():
     price_brl = float(request.form.get('price_brl', 0.0))
     description = request.form.get('description', '')
     image_url = request.form.get('image_url', '')
+    is_promotional = request.form.get('is_promotional') == 'true'
+    promotional_instructions = request.form.get('promotional_instructions', '')
 
-    create_coin_package(title, coins, bonus_coins, price_brl, description, image_url)
+    create_coin_package(title, coins, bonus_coins, price_brl, description, image_url, is_promotional, promotional_instructions)
     flash(f"Pacote '{title}' criado com sucesso!", "success")
     return redirect(url_for('coins'))
 
@@ -97,8 +99,10 @@ def handle_edit_package(package_id):
     description = request.form.get('description', '')
     image_url = request.form.get('image_url', '')
     active = request.form.get('active') == 'true'
+    is_promotional = request.form.get('is_promotional') == 'true'
+    promotional_instructions = request.form.get('promotional_instructions', '')
 
-    res = update_coin_package(package_id, title, coins, bonus_coins, price_brl, active, description, image_url)
+    res = update_coin_package(package_id, title, coins, bonus_coins, price_brl, active, description, image_url, is_promotional, promotional_instructions)
     if res:
         flash(f"Pacote '{title}' atualizado com sucesso!", "success")
     else:
