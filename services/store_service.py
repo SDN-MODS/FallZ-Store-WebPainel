@@ -7,7 +7,14 @@ from services.audit_service import log_action
 def get_active_categories():
     session = SessionLocal()
     try:
-        return session.query(Category).filter_by(active=True).order_by(Category.display_order.asc()).all()
+        categories = session.query(Category).filter_by(active=True).order_by(Category.display_order.asc()).all()
+        # Only return categories that have at least one regular product
+        valid_cats = []
+        for cat in categories:
+            has_regular_prod = session.query(Product).filter_by(category_id=cat.id, active=True, for_coin_package=False).first()
+            if has_regular_prod:
+                valid_cats.append(cat)
+        return valid_cats
     finally:
         session.close()
 

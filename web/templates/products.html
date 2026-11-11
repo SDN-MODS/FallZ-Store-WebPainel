@@ -170,69 +170,109 @@
     </div>
 </div>
 
-<!-- Tabela de Produtos Existentes -->
-<div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
-    <h2 class="text-lg font-bold text-white mb-4">Catálogo de Produtos & Kits</h2>
-    <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm text-gray-300">
-            <thead class="text-xs uppercase bg-gray-700/50 text-gray-400">
-                <tr>
-                    <th class="p-3">Produto / Kit</th>
-                    <th class="p-3">Categoria</th>
-                    <th class="p-3">Preço</th>
-                    <th class="p-3">Estoque</th>
-                    <th class="p-3">Tipo / Visibilidade</th>
-                    <th class="p-3 text-right">Ação</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-700">
-                {% for prod in products %}
-                <tr class="{% if prod.for_coin_package %}bg-amber-900/10 border-l-2 border-l-amber-500{% endif %}">
-                    <td class="p-3 font-semibold text-white flex items-center gap-3">
-                        {% if prod.image_url %}
-                        <img src="{{ prod.image_url }}" class="w-8 h-8 rounded object-cover border border-amber-500/30">
-                        {% else %}
-                        <div class="w-8 h-8 bg-blue-500/20 text-blue-400 rounded flex items-center justify-center font-bold text-xs">📦</div>
-                        {% endif %}
-                        <div>
-                            <div>{{ prod.name }}</div>
-                            {% if prod.description %}<div class="text-xs text-gray-400 font-normal">{{ prod.description }}</div>{% endif %}
-                        </div>
-                    </td>
-                    <td class="p-3 text-gray-400 text-xs">{{ prod.category.name if prod.category else '-' }}</td>
-                    <td class="p-3 font-bold text-amber-400">{{ prod.price_coins }} Coins</td>
-                    <td class="p-3 font-mono font-bold text-blue-400 text-xs">
-                        {% if prod.stock == -1 %}Infinito{% else %}{{ prod.stock }} un{% endif %}
-                    </td>
-                    <td class="p-3 text-xs">
-                        {% if prod.for_coin_package %}
-                        <span class="bg-amber-500/20 text-amber-400 px-2 py-1 rounded font-bold">Pacote Promocional</span>
-                        {% else %}
-                        <span class="bg-green-500/20 text-green-400 px-2 py-1 rounded font-bold">Loja Regular</span>
-                        {% endif %}
-                    </td>
-                    <td class="p-3 text-xs text-gray-400 hidden">
-                        {% if prod.content_items %}
-                            {% for c in prod.content_items %}
-                            <div class="text-gray-300">• {{ c.quantity }}x <strong>{{ c.item_name }}</strong>
-                                {% if c.is_single_use %}<span class="text-yellow-400 font-semibold">[Uso Único]</span>{% endif %}
-                                {% if c.expiration_days > 0 %}<span class="text-red-400 font-semibold">[{{ c.expiration_days }}d val]</span>{% endif %}
+<!-- Tabelas de Produtos Existentes -->
+<div class="flex flex-col gap-8">
+
+    <!-- Tabela 1: Loja Regular -->
+    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
+        <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-store text-green-400"></i> Catálogo da Loja Regular</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-gray-300">
+                <thead class="text-xs uppercase bg-gray-700/50 text-gray-400">
+                    <tr>
+                        <th class="p-3">Produto / Kit</th>
+                        <th class="p-3">Categoria</th>
+                        <th class="p-3">Preço</th>
+                        <th class="p-3">Estoque</th>
+                        <th class="p-3 text-right">Ação</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700">
+                    {% set has_regular = false %}
+                    {% for prod in products %}
+                    {% if not prod.for_coin_package %}
+                    {% set has_regular = true %}
+                    <tr>
+                        <td class="p-3 font-semibold text-white flex items-center gap-3">
+                            {% if prod.image_url %}
+                            <img src="{{ prod.image_url }}" class="w-8 h-8 rounded object-cover border border-amber-500/30">
+                            {% else %}
+                            <div class="w-8 h-8 bg-blue-500/20 text-blue-400 rounded flex items-center justify-center font-bold text-xs">📦</div>
+                            {% endif %}
+                            <div>
+                                <div>{{ prod.name }}</div>
+                                {% if prod.description %}<div class="text-xs text-gray-400 font-normal">{{ prod.description }}</div>{% endif %}
                             </div>
-                            {% endfor %}
-                        {% else %}
-                            <span class="text-gray-500">Sem itens internos</span>
-                        {% endif %}
-                    </td>
-                    <td class="p-3 text-right space-x-2">
-                        <a href="/products/delete/{{ prod.id }}" onclick="return confirm('Excluir este produto?')" class="text-xs text-red-400 hover:underline">Excluir</a>
-                    </td>
-                </tr>
-                {% else %}
-                <tr><td colspan="6" class="p-4 text-center text-gray-500">Nenhum produto cadastrado.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        </td>
+                        <td class="p-3 text-gray-400 text-xs">{{ prod.category.name if prod.category else '-' }}</td>
+                        <td class="p-3 font-bold text-amber-400">{{ prod.price_coins }} Coins</td>
+                        <td class="p-3 font-mono font-bold text-blue-400 text-xs">
+                            {% if prod.stock == -1 %}Infinito{% else %}{{ prod.stock }} un{% endif %}
+                        </td>
+                        <td class="p-3 text-right space-x-2">
+                            <a href="/products/delete/{{ prod.id }}" onclick="return confirm('Excluir este produto?')" class="text-xs text-red-400 hover:underline">Excluir</a>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                    {% if not has_regular %}
+                    <tr><td colspan="5" class="p-4 text-center text-gray-500">Nenhum produto cadastrado na Loja Regular.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
     </div>
+
+    <!-- Tabela 2: Promocionais -->
+    <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
+        <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-gift text-amber-400"></i> Recompensas Exclusivas para Pacotes de Coins</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-gray-300">
+                <thead class="text-xs uppercase bg-gray-700/50 text-gray-400">
+                    <tr>
+                        <th class="p-3">Recompensa / Kit</th>
+                        <th class="p-3">Categoria Base</th>
+                        <th class="p-3">Valor Simbólico</th>
+                        <th class="p-3">Estoque</th>
+                        <th class="p-3 text-right">Ação</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700">
+                    {% set has_promo = false %}
+                    {% for prod in products %}
+                    {% if prod.for_coin_package %}
+                    {% set has_promo = true %}
+                    <tr class="bg-amber-900/10 border-l-2 border-l-amber-500">
+                        <td class="p-3 font-semibold text-white flex items-center gap-3">
+                            {% if prod.image_url %}
+                            <img src="{{ prod.image_url }}" class="w-8 h-8 rounded object-cover border border-amber-500/30">
+                            {% else %}
+                            <div class="w-8 h-8 bg-amber-500/20 text-amber-400 rounded flex items-center justify-center font-bold text-xs">🎁</div>
+                            {% endif %}
+                            <div>
+                                <div>{{ prod.name }}</div>
+                                {% if prod.description %}<div class="text-xs text-gray-400 font-normal">{{ prod.description }}</div>{% endif %}
+                            </div>
+                        </td>
+                        <td class="p-3 text-gray-400 text-xs">{{ prod.category.name if prod.category else '-' }}</td>
+                        <td class="p-3 font-bold text-amber-400">{{ prod.price_coins }} Coins</td>
+                        <td class="p-3 font-mono font-bold text-blue-400 text-xs">
+                            {% if prod.stock == -1 %}Infinito{% else %}{{ prod.stock }} un{% endif %}
+                        </td>
+                        <td class="p-3 text-right space-x-2">
+                            <a href="/products/delete/{{ prod.id }}" onclick="return confirm('Excluir este produto?')" class="text-xs text-red-400 hover:underline">Excluir</a>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                    {% if not has_promo %}
+                    <tr><td colspan="5" class="p-4 text-center text-gray-500">Nenhuma recompensa exclusiva cadastrada.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 </div>
 
 <script>
