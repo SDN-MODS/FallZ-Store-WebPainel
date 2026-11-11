@@ -39,10 +39,17 @@ def create_category(name: str, description: str = "", display_order: int = 0):
 def get_products_by_category(category_id: str, only_active: bool = True):
     session = SessionLocal()
     try:
-        query = session.query(Product).options(joinedload(Product.content_items)).filter_by(category_id=category_id)
+        query = session.query(Product).options(joinedload(Product.content_items)).filter_by(category_id=category_id).filter_by(for_coin_package=False)
         if only_active:
             query = query.filter_by(active=True)
         return query.order_by(Product.display_order.asc()).all()
+    finally:
+        session.close()
+
+def get_products_for_coin_packages():
+    session = SessionLocal()
+    try:
+        return session.query(Product).options(joinedload(Product.content_items)).filter_by(for_coin_package=True, active=True).order_by(Product.name.asc()).all()
     finally:
         session.close()
 
@@ -53,7 +60,7 @@ def get_product_by_id(product_id: str):
     finally:
         session.close()
 
-def create_product(category_id: str, name: str, description: str, price_coins: int, stock: int = -1, image_url: str = "", content_items: list = None):
+def create_product(category_id: str, name: str, description: str, price_coins: int, stock: int = -1, image_url: str = "", for_coin_package: bool = False, content_items: list = None):
     """
     content_items format:
     [{'item_name': str, 'quantity': int, 'is_single_use': bool, 'expiration_days': int}]
@@ -68,7 +75,8 @@ def create_product(category_id: str, name: str, description: str, price_coins: i
             price_coins=price_coins,
             stock=stock,
             image_url=image_url,
-            active=True
+            active=True,
+            for_coin_package=for_coin_package
         )
         session.add(prod)
         session.flush()
@@ -93,7 +101,7 @@ def create_product(category_id: str, name: str, description: str, price_coins: i
     finally:
         session.close()
 
-def update_product(product_id: str, name: str, description: str, price_coins: int, stock: int, image_url: str, active: bool, category_id: str, content_items: list = None):
+def update_product(product_id: str, name: str, description: str, price_coins: int, stock: int, image_url: str, active: bool, category_id: str, for_coin_package: bool = False, content_items: list = None):
     session = SessionLocal()
     try:
         prod = session.query(Product).filter_by(id=product_id).first()
@@ -105,6 +113,7 @@ def update_product(product_id: str, name: str, description: str, price_coins: in
             prod.image_url = image_url
             prod.active = active
             prod.category_id = category_id
+            prod.for_coin_package = for_coin_package
 
             # Clear old content items and replace
             session.query(ProductContentItem).filter_by(product_id=prod.id).delete()

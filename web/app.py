@@ -16,7 +16,7 @@ from services.coin_service import (
     create_coin_package, update_coin_package, delete_coin_package, adjust_user_coins_manually
 )
 from services.store_service import (
-    get_all_categories, create_category, create_product, delete_product
+    get_all_categories, create_category, create_product, delete_product, get_products_for_coin_packages
 )
 from services.order_service import update_order_status
 from services.coupon_service import get_all_coupons, create_coupon, delete_coupon, toggle_coupon
@@ -68,10 +68,11 @@ def coins(package_id=None):
     try:
         packages = get_all_coin_packages()
         users = session.query(User).all()
+        reward_products = get_products_for_coin_packages()
         edit_pkg = None
         if package_id:
             edit_pkg = session.query(CoinPackage).filter_by(id=package_id).first()
-        return render_template('coins.html', active_page='coins', packages=packages, users=users, edit_pkg=edit_pkg)
+        return render_template('coins.html', active_page='coins', packages=packages, users=users, edit_pkg=edit_pkg, reward_products=reward_products)
     finally:
         session.close()
 
@@ -85,8 +86,11 @@ def handle_create_package():
     image_url = request.form.get('image_url', '')
     is_promotional = request.form.get('is_promotional') == 'true'
     promotional_instructions = request.form.get('promotional_instructions', '')
+    reward_product_id = request.form.get('reward_product_id')
+    if not reward_product_id:
+        reward_product_id = None
 
-    create_coin_package(title, coins, bonus_coins, price_brl, description, image_url, is_promotional, promotional_instructions)
+    create_coin_package(title, coins, bonus_coins, price_brl, description, image_url, is_promotional, promotional_instructions, reward_product_id)
     flash(f"Pacote '{title}' criado com sucesso!", "success")
     return redirect(url_for('coins'))
 
@@ -101,8 +105,11 @@ def handle_edit_package(package_id):
     active = request.form.get('active') == 'true'
     is_promotional = request.form.get('is_promotional') == 'true'
     promotional_instructions = request.form.get('promotional_instructions', '')
+    reward_product_id = request.form.get('reward_product_id')
+    if not reward_product_id:
+        reward_product_id = None
 
-    res = update_coin_package(package_id, title, coins, bonus_coins, price_brl, active, description, image_url, is_promotional, promotional_instructions)
+    res = update_coin_package(package_id, title, coins, bonus_coins, price_brl, active, description, image_url, is_promotional, promotional_instructions, reward_product_id)
     if res:
         flash(f"Pacote '{title}' atualizado com sucesso!", "success")
     else:
@@ -234,6 +241,7 @@ def handle_create_product():
     price_coins = int(request.form.get('price_coins', 0))
     stock = int(request.form.get('stock', -1))
     image_url = request.form.get('image_url', '')
+    for_coin_package = request.form.get('for_coin_package') == 'true'
 
     item_names = request.form.getlist('item_names[]')
     item_quantities = request.form.getlist('item_quantities[]')
@@ -254,7 +262,7 @@ def handle_create_product():
                 'expiration_days': exp
             })
 
-    create_product(category_id, name, description, price_coins, stock, image_url, content_items=content_items)
+    create_product(category_id, name, description, price_coins, stock, image_url, for_coin_package=for_coin_package, content_items=content_items)
     flash(f"Produto/Kit '{name}' cadastrado com sucesso!", "success")
     return redirect(url_for('products'))
 

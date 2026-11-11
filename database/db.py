@@ -138,6 +138,13 @@ def migrate_db():
             conn.execute(text("ALTER TABLE coin_packages ADD COLUMN is_promotional BOOLEAN DEFAULT 0"))
         if 'promotional_instructions' not in pkg_columns:
             conn.execute(text("ALTER TABLE coin_packages ADD COLUMN promotional_instructions TEXT"))
+        if 'reward_product_id' not in pkg_columns:
+            conn.execute(text("ALTER TABLE coin_packages ADD COLUMN reward_product_id VARCHAR"))
+
+        prod_result = conn.execute(text("PRAGMA table_info(products)")).fetchall()
+        prod_columns = [row[1] for row in prod_result]
+        if 'for_coin_package' not in prod_columns:
+            conn.execute(text("ALTER TABLE products ADD COLUMN for_coin_package BOOLEAN DEFAULT 0"))
 
         user_result = conn.execute(text("PRAGMA table_info(users)")).fetchall()
         user_columns = [row[1] for row in user_result]

@@ -132,6 +132,11 @@
             </div>
 
             <!-- Seção de Itens Internos do Kit -->
+            <div class="flex items-center gap-2 mb-2 mt-4">
+                <input type="checkbox" name="for_coin_package" value="true" id="for_coin_package" class="rounded border-gray-700 text-amber-500 focus:ring-0">
+                <label for="for_coin_package" class="text-xs text-amber-400 font-bold">Produto exclusivo para Pacotes de Coins (Não aparece na Loja)</label>
+            </div>
+
             <div class="border-t border-gray-700 pt-3">
                 <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">Composição do Kit (Itens Internos com Validade / Uso Único)</h3>
                 <div id="items-container" class="space-y-3">
@@ -176,13 +181,13 @@
                     <th class="p-3">Categoria</th>
                     <th class="p-3">Preço</th>
                     <th class="p-3">Estoque</th>
-                    <th class="p-3">Itens Internos (Validade)</th>
+                    <th class="p-3">Tipo / Visibilidade</th>
                     <th class="p-3 text-right">Ação</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-700">
                 {% for prod in products %}
-                <tr>
+                <tr class="{% if prod.for_coin_package %}bg-amber-900/10 border-l-2 border-l-amber-500{% endif %}">
                     <td class="p-3 font-semibold text-white flex items-center gap-3">
                         {% if prod.image_url %}
                         <img src="{{ prod.image_url }}" class="w-8 h-8 rounded object-cover border border-amber-500/30">
@@ -200,6 +205,13 @@
                         {% if prod.stock == -1 %}Infinito{% else %}{{ prod.stock }} un{% endif %}
                     </td>
                     <td class="p-3 text-xs">
+                        {% if prod.for_coin_package %}
+                        <span class="bg-amber-500/20 text-amber-400 px-2 py-1 rounded font-bold">Pacote Promocional</span>
+                        {% else %}
+                        <span class="bg-green-500/20 text-green-400 px-2 py-1 rounded font-bold">Loja Regular</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-3 text-xs text-gray-400 hidden">
                         {% if prod.content_items %}
                             {% for c in prod.content_items %}
                             <div class="text-gray-300">• {{ c.quantity }}x <strong>{{ c.item_name }}</strong>

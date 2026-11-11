@@ -45,6 +45,7 @@ class CoinPackage(Base):
     active = Column(Boolean, default=True)
     is_promotional = Column(Boolean, default=False)
     promotional_instructions = Column(Text, nullable=True)
+    reward_product_id = Column(String, nullable=True)
     created_at = Column(DateTime, default=get_now_brt)
     updated_at = Column(DateTime, default=get_now_brt, onupdate=get_now_brt)
 
@@ -89,6 +90,7 @@ class Product(Base):
     image_url = Column(String, nullable=True)
     display_order = Column(Integer, default=0)
     active = Column(Boolean, default=True)
+    for_coin_package = Column(Boolean, default=False)
     created_at = Column(DateTime, default=get_now_brt)
     updated_at = Column(DateTime, default=get_now_brt, onupdate=get_now_brt)
 
